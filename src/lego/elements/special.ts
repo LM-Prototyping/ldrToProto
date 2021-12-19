@@ -1,4 +1,5 @@
 import math from "mathjs";
+import { lego } from "..";
 import { FileNodeDict, LineType1Data, Point } from "../../parsers/types";
 import { getLineData, line1ToString } from "../../parsers/utils";
 import { transformation } from "../../transformation";
@@ -121,6 +122,7 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
           name
         );
 
+        const { basePosition } = lego.elements.special.devices[internalName];
         const { transformationMatrix, coordinates } = getLineData(line) as LineType1Data;
 
         const realRotationMatrix = transformation.matrix.ldrToWebots(
@@ -132,8 +134,12 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
 
         newGraph[name].specialElements.push({
           name: internalName,
-          line: line,
-          rotation: realRotationMatrix
+          rotation: transformationMatrix,
+          coordinate: transformation.point.transform(
+            basePosition,
+            coordinates,
+            transformationMatrix
+          )
         });
       }
     }
@@ -141,6 +147,13 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
 
   return newGraph;
 };
+
+const transformBasePosition = (lines: string[], basePosition: Point) =>
+  lines.reduce((all, curr) => {
+    const { transformationMatrix, coordinates } = getLineData(curr) as LineType1Data;
+
+    return transformation.point.transform(all, coordinates, transformationMatrix);
+  }, basePosition);
 
 const transformArray = (
   specialElements: SpecialElement[],
@@ -150,12 +163,16 @@ const transformArray = (
   const newSpecialElements = [] as SpecialElement[];
 
   for (const element of specialElements) {
-    const { name, line, rotation } = element;
+    const { name, coordinate: oldCoordinate, rotation } = element;
 
-    const newLine = transformation.matrix.transform(line, coordinates, transformationMatrix);
+    const newRotationMatrix = transformation.matrix.transform(transformationMatrix, rotation);
 
     // newSpecialElements.push({ name, line: newLine });
-    newSpecialElements.push(element);
+    newSpecialElements.push({
+      name,
+      rotation: newRotationMatrix,
+      coordinate: transformation.point.transform(oldCoordinate, coordinates, transformationMatrix)
+    });
   }
 
   return newSpecialElements;
@@ -165,5 +182,6 @@ export const special = {
   ...parts,
   devices: partsDeviceInfo,
   extractFromDependecyGraph,
-  transformArray
+  transformArray,
+  transformBasePosition
 };

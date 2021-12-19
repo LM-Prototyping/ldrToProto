@@ -135,46 +135,19 @@ export const createIndexedFaceSetFromFile = (file: string[], specialElements: Sp
     for (const elementIndex in specialElements) {
       console.log("Special Element", elementIndex);
 
-      const { line, name, rotation: rotationMatrix } = specialElements[elementIndex];
-
-      const { transformationMatrix, coordinates } = getLineData(line) as LineType1Data;
+      const { coordinate, name, rotation: rotationMatrix } = specialElements[elementIndex];
 
       if (!lego.elements.special.devices[name]) {
         continue;
       }
 
-      const { basePosition, buildElement } = lego.elements.special.devices[name] as DeviceInfo;
+      // const { transformationMatrix, coordinates } = getLineData(line) as LineType1Data;
 
-      let rotation = rotationMatrixToAngleAxis(rotationMatrix);
+      const { buildElement } = lego.elements.special.devices[name] as DeviceInfo;
 
-      const newPoint = transformation.point.transform(
-        basePosition,
-        coordinates,
-        transformationMatrix
-      );
+      let rotation = rotationMatrixToAngleAxis(rotationMatrix, coordinate);
 
-      const transformedNewPoint = transformation.point.toReal(newPoint);
-
-      const { x, y, z } = basePosition;
-
-      const newPoint2 = transformation.point.transform(
-        { x, y, z: z - 40 },
-        coordinates,
-        transformationMatrix
-      );
-
-      console.log(transformationMatrix, coordinates, {
-        x: newPoint2.x - newPoint.x,
-        y: newPoint.y - newPoint2.y,
-        z: newPoint.z - newPoint2.z
-      });
-
-      // console.log(newPoint, newPoint2);
-
-      // rotation = transformation.point.rotate(
-      //   { x: 1, y: 0, z: 0 },
-      //   { x: newPoint2.x - newPoint.x, y: newPoint.y - newPoint2.y, z: newPoint.z - newPoint2.z }
-      // );
+      const transformedNewPoint = transformation.point.toReal(coordinate);
 
       faceSets.push(buildElement(transformedNewPoint, rotation, "test_sensor_" + elementIndex));
     }

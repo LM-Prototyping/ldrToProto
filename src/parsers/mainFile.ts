@@ -164,9 +164,9 @@ const parseMainFile = (fileContent: string) => {
       // Die transformierten Lines an die neuen Lines anhängen
       newLines.push(...transformedSubFile);
 
-      // newSpecialElements.push(
-      //   ...lego.elements.special.transformArray(specialElements, coordinates, transformationMatrix)
-      // );
+      newSpecialElements.push(
+        ...lego.elements.special.transformArray(specialElements, coordinates, transformationMatrix)
+      );
     }
 
     model.modelLines = newLines;

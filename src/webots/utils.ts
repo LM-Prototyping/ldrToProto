@@ -1,4 +1,6 @@
 import math, { acos, pi, sqrt } from "mathjs";
+import { Point } from "../parsers/types";
+import { transformation } from "../transformation";
 
 const hexToInt = (i: string) => parseInt(i, 16);
 
@@ -30,8 +32,10 @@ export const hexColorToBaseColorString = (hex: string) => {
   return "baseColor " + [r, g, b].map((i) => i / 256).join(" ");
 };
 
-export const rotationMatrixToAngleAxis = (matrix: math.Matrix) => {
-  const A = matrix.toArray() as number[][];
+export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => {
+  const realMatrix = transformation.matrix.ldrToWebots(matrix, coord);
+
+  const A = realMatrix.toArray() as number[][];
 
   const angle = acos((A[0][0] + A[1][1] + A[2][2] - 1) / 2);
 

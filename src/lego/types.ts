@@ -12,8 +12,8 @@ export type PartTypeDict = Dict<PartType>;
 
 export interface SpecialElement {
   name: string;
-  line: string;
   rotation: math.Matrix;
+  coordinate: Point;
 }
 export type SpecialElementDict = Dict<SpecialElement>;
 

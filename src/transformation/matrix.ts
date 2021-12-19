@@ -1,9 +1,12 @@
-import math, { cross, dot, matrix as mathJsMatrix, pi } from "mathjs";
+import math, { cross, dot, matrix as mathJsMatrix, multiply, pi } from "mathjs";
 import { transformation } from ".";
 import { LineType1Data, Point } from "../parsers/types";
-import { getLineData } from "../parsers/utils";
-import { Rotation } from "../webots/types";
 import { point } from "./point";
+
+interface TransformationData {
+  coordinates: Point;
+  transformationMatrix: math.Matrix;
+}
 
 /*
  *  Transformiert eine line mit type 1 um die entsprechende Matrix und die Koordniaten
@@ -12,48 +15,23 @@ import { point } from "./point";
  *  Die Koordinaten können einfach über die bekannte Punkttransformation berechnet
  *  werden
  */
-const transform = (line: string, coordB: Point, tmB: math.Matrix) => {
-  const {
-    transformationMatrix: tmA,
-    coordinates: coordA,
-    color,
-    fileName
-  } = getLineData(line) as LineType1Data;
-
-  const newCoordinates = transformation.point.transform(coordA, { x: 0, y: 0, z: 0 }, tmA);
-  const transformedCoord = transformation.point.add(newCoordinates, coordB);
-
-  const vectorA = { x: 1, y: 0, z: 0 };
-
-  // Vector nach der rotation mit tmA
-  const tmARotation = transformation.point.transform(vectorA, { x: 0, y: 0, z: 0 }, tmA);
-
-  // Vector nach der Rotation mit tmB
-  const tmBRotation = transformation.point.transform(tmARotation, { x: 0, y: 0, z: 0 }, tmB);
-  const tmBRotation_2 = transformation.point.transform(
-    { ...tmARotation, z: tmARotation.z + 1 },
-    { x: 0, y: 0, z: 0 },
-    tmB
+const transform = (newTrans: math.Matrix, rotationMatrix: math.Matrix): math.Matrix => {
+  console.log(
+    rotationMatrix,
+    newTrans,
+    multiply(rotationMatrix, newTrans),
+    multiply(newTrans, rotationMatrix)
   );
 
-  const newRotationMatrix = rotation(vectorA, {
-    x: tmBRotation_2.x - tmBRotation.x,
-    y: tmBRotation.y - tmBRotation_2.y,
-    z: tmBRotation.z - tmBRotation_2.z
-  }).toArray() as number[][];
+  return multiply(newTrans, rotationMatrix);
 
-  //   console.log("MATRIX", coordA);
+  return mathJsMatrix([
+    [-1, 0, 0],
+    [0, 0, 1],
+    [0, 1, 0]
+  ]);
 
-  return (
-    "1 " +
-    color +
-    " " +
-    transformation.point.toString(transformedCoord) +
-    " " +
-    newRotationMatrix.map((row) => row.map((n) => "" + n).join(" ")).join(" ") +
-    " " +
-    fileName
-  );
+  return multiply(rotationMatrix, newTrans);
 };
 
 const ldrToWebots = (transformationMatrix: math.Matrix, coordinates: Point) => {
@@ -64,12 +42,6 @@ const ldrToWebots = (transformationMatrix: math.Matrix, coordinates: Point) => {
     coordinates,
     transformationMatrix
   );
-
-  console.log(transformationMatrix, coordinates, {
-    x: toPoint.x - fromPoint.x,
-    y: fromPoint.y - toPoint.y,
-    z: fromPoint.z - toPoint.z
-  });
 
   const rotationMatrix = rotation(basePoint, {
     x: toPoint.x - fromPoint.x,
