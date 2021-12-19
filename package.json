@@ -1,0 +1,37 @@
+{
+  "scripts": {
+    "start": "ts-node src/main.ts"
+  },
+  "prettier": {
+    "semi": true,
+    "printWidth": 100,
+    "trailingComma": "none",
+    "importOrder": [
+      "^\\d+/?.*",
+      "^([.][.])/?.*$",
+      "^[.]/.*$"
+    ],
+    "importOrderSeparation": true
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.7.0",
+    "@typescript-eslint/parser": "^5.7.0",
+    "eslint": "^8.4.1",
+    "eslint-import-resolver-typescript": "^2.5.0",
+    "eslint-plugin-flowtype": "^8.0.3",
+    "eslint-plugin-import": "^2.25.3",
+    "lint-staged": "^12.1.2",
+    "prettier": "^2.5.1",
+    "ts-jest": "^27.1.1",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "@types/argparse": "^2.0.10",
+    "argparse": "^2.0.1",
+    "jshint": "^2.13.1",
+    "math": "^0.0.3",
+    "mathjs": "^10.0.0",
+    "ts-node": "^10.4.0",
+    "tshint": "^0.0.2"
+  }
+}
