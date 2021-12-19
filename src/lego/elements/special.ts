@@ -125,13 +125,6 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
         const { basePosition } = lego.elements.special.devices[internalName];
         const { transformationMatrix, coordinates } = getLineData(line) as LineType1Data;
 
-        const realRotationMatrix = transformation.matrix.ldrToWebots(
-          transformationMatrix,
-          coordinates
-        );
-
-        // console.log(transformationMatrix, realRotationMatrix);
-
         newGraph[name].specialElements.push({
           name: internalName,
           rotation: transformationMatrix,

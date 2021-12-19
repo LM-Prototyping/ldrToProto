@@ -1,12 +1,7 @@
 import math, { cross, dot, matrix as mathJsMatrix, multiply, pi } from "mathjs";
 import { transformation } from ".";
-import { LineType1Data, Point } from "../parsers/types";
+import { Point } from "../parsers/types";
 import { point } from "./point";
-
-interface TransformationData {
-  coordinates: Point;
-  transformationMatrix: math.Matrix;
-}
 
 /*
  *  Transformiert eine line mit type 1 um die entsprechende Matrix und die Koordniaten
@@ -15,24 +10,8 @@ interface TransformationData {
  *  Die Koordinaten können einfach über die bekannte Punkttransformation berechnet
  *  werden
  */
-const transform = (newTrans: math.Matrix, rotationMatrix: math.Matrix): math.Matrix => {
-  console.log(
-    rotationMatrix,
-    newTrans,
-    multiply(rotationMatrix, newTrans),
-    multiply(newTrans, rotationMatrix)
-  );
-
-  return multiply(newTrans, rotationMatrix);
-
-  return mathJsMatrix([
-    [-1, 0, 0],
-    [0, 0, 1],
-    [0, 1, 0]
-  ]);
-
-  return multiply(rotationMatrix, newTrans);
-};
+const transform = (newTrans: math.Matrix, rotationMatrix: math.Matrix): math.Matrix =>
+  multiply(newTrans, rotationMatrix);
 
 const ldrToWebots = (transformationMatrix: math.Matrix, coordinates: Point) => {
   const basePoint = { x: 1, y: 0, z: 0 };

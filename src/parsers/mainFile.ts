@@ -6,11 +6,11 @@ import {
 import { getLineData } from "./utils";
 import { applyColorToLines } from "../colors";
 import fs from "fs";
-import { parseDatFile } from "./parseDatFile";
 import { LineType1Data } from "./types";
 import { createIndexedFaceSetFromFile } from "../webots/indexedFaceSet";
 import { transformation } from "../transformation";
 import { lego } from "../lego";
+import { parseDatFile } from "./dat";
 
 /*
  * Parse main file. In the main .ldr file only other files ar included and groups are created.
@@ -70,6 +70,8 @@ const parseMainFile = (fileContent: string) => {
   // zu einem Webots objekt gemacht werden muss
   const processedFilesOrder = [] as string[];
 
+  console.time();
+
   while (true) {
     const fileToProcess = getNextFileFromDependencyGraph(graphWithSpecialElements);
 
@@ -110,6 +112,8 @@ const parseMainFile = (fileContent: string) => {
 
     graphWithSpecialElements = deleteFromDependencyGraph(name, graphWithSpecialElements);
   }
+
+  console.timeEnd();
 
   for (const name of processedFilesOrder) {
     // Hier Untermodelle Button up einfügen und ggf Transformationen durchführen

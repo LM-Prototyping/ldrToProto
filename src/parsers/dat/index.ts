@@ -1,25 +1,13 @@
-import { Constants } from "../constants";
-import { LineType1Data } from "./types";
-
 import fs from "fs";
-import { getLineData } from "./utils";
-import { transformation } from "../transformation";
-import { applyColorToLines, getOriginalColorForInlineFile } from "../colors";
-import { lego } from "../lego";
+import { applyColorToLines, getOriginalColorForInlineFile } from "../../colors";
+import { lego } from "../../lego";
+import { transformation } from "../../transformation";
+import { Dict } from "../../types";
+import { LineType1Data } from "../types";
+import { getLineData } from "../utils";
+import { readDatFile } from "./read";
 
-const readDatFile = (fileName: string) => {
-  for (const filePath of Constants.PARTS_LIBRARY_DIRS.map(
-    (dir) => Constants.PARTS_LIBRARY_BASE_PATH + dir
-  )) {
-    try {
-      return fs.readFileSync(filePath + "/" + fileName.toLowerCase(), "utf8");
-    } catch (e) {}
-  }
-
-  console.log("Cannot read file", fileName);
-
-  return undefined;
-};
+const cache: Dict<string | undefined> = {};
 
 // TODO rekursiv modellieren
 // Applied keine Farben
@@ -31,7 +19,11 @@ export const parseDatFile = (lineData: LineType1Data): string[] | undefined | nu
     return null;
   }
 
-  const fileData = readDatFile(fileName);
+  if (!cache[fileName]) {
+    cache[fileName] = readDatFile(fileName);
+  }
+
+  const fileData = cache[fileName];
 
   if (!fileData) {
     return undefined;
