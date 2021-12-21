@@ -12,8 +12,18 @@
 
 const partsToIgnore = [
   "54732", // Kabelanschluss
-  "54725c01" // Wheel von LEGO NXT Motor
+  "54725c01", // Wheel von LEGO NXT Motor
   //   "peghole" // Löcherk
+  "connect",
+  "confric",
+  "connhole",
+  // "ndis"
+  "3673"
+  // "32556",
+  // "6558",
+  // "87082",
+  // "4459",
+  // "2780"
 ];
 
 const ignoreRegExp = new RegExp("(" + partsToIgnore.join("|") + ")");

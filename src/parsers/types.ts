@@ -1,4 +1,4 @@
-import { SpecialElement } from "../lego/types";
+import { BaseElement, FileNodeWithSpecialElements, SpecialElement } from "../lego/types";
 import { Dict } from "../types";
 
 export interface FileNodeInfo {
@@ -13,11 +13,16 @@ export interface FileNode {
   dependentBy: FileNodeDict;
 }
 
-export interface ProcessedFile {
+export interface ProcessedFile
+  extends Pick<FileNodeWithSpecialElements, "specialElements" | "connections"> {
   name: string;
   modelLines: string[];
-  specialElements: SpecialElement[];
+  hingeJoints?: HingeJointElement[];
 }
+export interface HingeJointElement extends ProcessedFile {
+  elementInfo: BaseElement;
+}
+export type ProcessedFilesDict = Dict<ProcessedFile>;
 
 export type FileNodeDict = Dict<FileNode>;
 

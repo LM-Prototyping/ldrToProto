@@ -4,14 +4,17 @@ import { FileNodeDict, LineType1Data, Point } from "../../parsers/types";
 import { getLineData, line1ToString } from "../../parsers/utils";
 import { transformation } from "../../transformation";
 import { webots } from "../../webots";
+import { Rotation } from "../../webots/types";
 import {
+  BaseElement,
+  ConnectionElement,
   DeviceInfoDict,
   FileNodeWithSpecialElementsDict,
   PartTypeDict,
   SpecialElement
 } from "../types";
 
-export const parts: PartTypeDict = {
+export const specialParts: PartTypeDict = {
   ms1040: {
     type: "sensor",
     name: "Accelerometer",
@@ -76,6 +79,11 @@ export const parts: PartTypeDict = {
     type: "motor",
     name: "NXT Motor",
     internalName: "nxt_motor"
+  },
+  3673: {
+    type: "connection",
+    name: "Technik Pin",
+    internalName: "technic_pin"
   }
 };
 
@@ -88,6 +96,14 @@ const partsDeviceInfo: DeviceInfoDict = {
       z: -80
     },
     buildElement: webots.devices.sensors.distance
+  },
+  technic_pin: {
+    basePosition: {
+      x: 1,
+      y: 0,
+      z: 0
+    },
+    buildElement: (transform: Point, rotation: Rotation, name: string) => ""
   }
 };
 
@@ -97,7 +113,11 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
   for (const node of Object.values(dependencyGraph)) {
     const { name, file } = node;
 
-    newGraph[name] = { ...node, specialElements: [] as SpecialElement[] };
+    newGraph[name] = {
+      ...node,
+      specialElements: [] as SpecialElement[],
+      connections: [] as ConnectionElement[]
+    };
 
     for (const line of file.split("\n")) {
       const lineMatch = line.match(
@@ -110,8 +130,8 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
 
       const { fileName } = lineMatch.groups;
 
-      if (parts[fileName]) {
-        const { name: specialElementName, type, internalName } = parts[fileName];
+      if (specialParts[fileName]) {
+        const { name: specialElementName, type, internalName } = specialParts[fileName];
 
         console.log(
           "Found special element: ",
@@ -121,19 +141,33 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
           "in submodel",
           name
         );
-
         const { basePosition } = lego.elements.special.devices[internalName];
         const { transformationMatrix, coordinates } = getLineData(line) as LineType1Data;
 
-        newGraph[name].specialElements.push({
-          name: internalName,
-          rotation: transformationMatrix,
-          coordinate: transformation.point.transform(
-            basePosition,
-            coordinates,
-            transformationMatrix
-          )
-        });
+        switch (type) {
+          case "sensor": {
+            newGraph[name].specialElements.push({
+              name: internalName,
+              rotation: transformationMatrix,
+              coordinate: transformation.point.transform(
+                basePosition,
+                coordinates,
+                transformationMatrix
+              )
+            });
+            break;
+          }
+          case "connection": {
+            newGraph[name].connections.push({
+              rotation: transformationMatrix,
+              coordinate: transformation.point.transform(
+                basePosition,
+                coordinates,
+                transformationMatrix
+              )
+            });
+          }
+        }
       }
     }
   }
@@ -148,21 +182,21 @@ const transformBasePosition = (lines: string[], basePosition: Point) =>
     return transformation.point.transform(all, coordinates, transformationMatrix);
   }, basePosition);
 
-const transformArray = (
-  specialElements: SpecialElement[],
+const transformArray = <T extends BaseElement[]>(
+  specialElements: T,
   coordinates: Point,
   transformationMatrix: math.Matrix
 ) => {
-  const newSpecialElements = [] as SpecialElement[];
+  const newSpecialElements = [] as unknown as T;
 
   for (const element of specialElements) {
-    const { name, coordinate: oldCoordinate, rotation } = element;
+    const { coordinate: oldCoordinate, rotation, ...rest } = element;
 
     const newRotationMatrix = transformation.matrix.transform(transformationMatrix, rotation);
 
     // newSpecialElements.push({ name, line: newLine });
     newSpecialElements.push({
-      name,
+      ...rest,
       rotation: newRotationMatrix,
       coordinate: transformation.point.transform(oldCoordinate, coordinates, transformationMatrix)
     });
@@ -172,7 +206,7 @@ const transformArray = (
 };
 
 export const special = {
-  ...parts,
+  ...specialParts,
   devices: partsDeviceInfo,
   extractFromDependecyGraph,
   transformArray,

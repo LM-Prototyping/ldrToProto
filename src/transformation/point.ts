@@ -24,6 +24,8 @@ const toVector = (point: Point) => {
 
 const add = (a: Point, b: Point) => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z });
 
+const subtract = (a: Point, b: Point) => ({ x: b.x - a.x, y: b.y - a.y, z: b.z - a.z });
+
 const toArray = ({ x, y, z }: Point) => [x, y, z];
 
 const fromArray = (point: number[]) => ({ x: point[0], y: point[1], z: point[2] });
@@ -42,6 +44,8 @@ const transform = (point: Point, coordinateOffset: Point, transformationMatrix: 
     round(addVectors(multiply(transformationMatrix, vector), offsetMatrix) as math.Matrix, 9)
   );
 };
+
+const distance = (a: Point, b: Point) => length([b.x - a.x, b.y - a.y, b.z - a.z]);
 
 const scale = (point: Point, transformationMatrix: math.Matrix) => {
   return transform(point, { x: 0, y: 0, z: 0 }, transformationMatrix);
@@ -140,9 +144,11 @@ export const point = {
   toCoordArray,
   toString,
   transform,
+  subtract,
   scale,
   toReal,
   rotate,
+  distance,
   normalizePoint,
   add,
   normalize

@@ -1,7 +1,14 @@
 import { webots } from ".";
 import { lego } from "../lego";
+import { specialParts } from "../lego/elements/special";
 import { DeviceInfo, DeviceInfoDict, SpecialElement } from "../lego/types";
-import { LineType1Data, LineType3Data, LineType4Data, Point } from "../parsers/types";
+import {
+  HingeJointElement,
+  LineType1Data,
+  LineType3Data,
+  LineType4Data,
+  Point
+} from "../parsers/types";
 import { getLineData } from "../parsers/utils";
 import { transformation } from "../transformation";
 import { elements } from "./elements";
@@ -14,11 +21,22 @@ const roundPoint = ({ x, y, z }: Point) => ({
   z: Number(z.toFixed(5))
 });
 
-export const createIndexedFaceSetFromFile = (file: string[], specialElements: SpecialElement[]) => {
+export const createIndexedFaceSetFromFile = (
+  file: string[],
+  specialElements: SpecialElement[],
+  hingeJoints: HingeJointElement[] = []
+) => {
   //
+  console.log(hingeJoints);
+
+  // Zuerst die File in reale Coordinaten transformieren und dann parsen
+  const fileToReal = transformation.file.toReal(file);
+
+  // Jetzt die File parsen und dabei unnötige Koordinaten entfernen
+  // und verschiedene Sets für unterschiedliche Farben erstellen
   const objects = {} as SubModuleIndexedFaceSetDict;
 
-  for (const line of file) {
+  for (const line of fileToReal) {
     let lineData = undefined;
     try {
       lineData = getLineData(line);
@@ -118,6 +136,7 @@ export const createIndexedFaceSetFromFile = (file: string[], specialElements: Sp
     objects[color].maxIndex = maxIndex;
   }
 
+  // Die unterschiediedlichen FaceSets erstellen. Für jede Farbe ein Set
   const faceSets = [] as string[];
 
   for (const color of Object.keys(objects)) {
@@ -131,6 +150,9 @@ export const createIndexedFaceSetFromFile = (file: string[], specialElements: Sp
     faceSets.push(shape);
   }
 
+  const devices = [] as string[];
+
+  // Die unterschiedlichen Sensoren erstellen und zum Set hinzufügen
   if (specialElements && specialElements.length > 0) {
     for (const elementIndex in specialElements) {
       console.log("Special Element", elementIndex);
@@ -141,25 +163,41 @@ export const createIndexedFaceSetFromFile = (file: string[], specialElements: Sp
         continue;
       }
 
-      // const { transformationMatrix, coordinates } = getLineData(line) as LineType1Data;
-
       const { buildElement } = lego.elements.special.devices[name] as DeviceInfo;
 
       let rotation = rotationMatrixToAngleAxis(rotationMatrix, coordinate);
 
       const transformedNewPoint = transformation.point.toReal(coordinate);
 
-      faceSets.push(buildElement(transformedNewPoint, rotation, "test_sensor_" + elementIndex));
+      devices.push(buildElement(transformedNewPoint, rotation, "test_sensor_" + elementIndex));
     }
   }
 
-  return faceSets.length > 1
-    ? `
-    Group {
-      children [
-        ${faceSets.join("\n")}
-      ]
-    }
-  `
-    : faceSets[0];
+  const hingeJointsAsString = [] as string[];
+  for (const hinge of hingeJoints) {
+    const { modelLines, specialElements, hingeJoints, elementInfo } = hinge;
+    const endPoint = createIndexedFaceSetFromFile(modelLines, specialElements, hingeJoints);
+
+    const { coordinate, rotation } = elementInfo;
+    const rotatedAxis = transformation.point.transform({ x: 1, y: 0, z: 0 }, coordinate, rotation);
+    const hingeJoint = webots.elements.hingeJoint(
+      transformation.point.subtract(rotatedAxis, coordinate),
+      transformation.point.toReal(coordinate),
+      endPoint
+    );
+    hingeJointsAsString.push(hingeJoint);
+  }
+
+  // Erstelle aus den einzelnen Shapes ein Solid Element
+  const solid = webots.elements.solid(
+    null,
+    null,
+    faceSets.join("\n"),
+    devices.join("\n"),
+    hingeJointsAsString.join("\n")
+  );
+
+  // Jetzt HingeJoint Elemente erstellen
+
+  return solid;
 };

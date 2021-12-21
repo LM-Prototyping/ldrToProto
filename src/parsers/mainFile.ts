@@ -6,11 +6,12 @@ import {
 import { getLineData } from "./utils";
 import { applyColorToLines } from "../colors";
 import fs from "fs";
-import { LineType1Data } from "./types";
+import { HingeJointElement, LineType1Data, ProcessedFilesDict } from "./types";
 import { createIndexedFaceSetFromFile } from "../webots/indexedFaceSet";
 import { transformation } from "../transformation";
 import { lego } from "../lego";
 import { parseDatFile } from "./dat";
+import { ConnectionElement, FileNodeWithSpecialElements } from "../lego/types";
 
 /*
  * Parse main file. In the main .ldr file only other files ar included and groups are created.
@@ -60,9 +61,9 @@ const parseMainFile = (fileContent: string) => {
 
   let graphWithSpecialElements = lego.elements.special.extractFromDependecyGraph(dependencyGraph);
 
-  // console.log(graphWithSpecialElements);
+  console.log(graphWithSpecialElements);
 
-  const processedFiles = {} as { [key: string]: any };
+  const processedFiles = {} as ProcessedFilesDict;
   // Reihenfolge der bearbeiteten Modelle speichern um später
   // Child Parent verhältnisse Button Up aufbauen zu können
   // Die File die zuletzt bearbeitet wurde und ganz hinten im Array
@@ -79,7 +80,9 @@ const parseMainFile = (fileContent: string) => {
       break;
     }
 
-    const { name, file, specialElements } = fileToProcess;
+    const { name, file, specialElements, connections } = fileToProcess;
+
+    console.log("File to process", name);
 
     const modelLines = [] as string[];
 
@@ -93,6 +96,7 @@ const parseMainFile = (fileContent: string) => {
 
       const data = getLineData(line);
 
+      // Hier werde nur Dat files geparsed und keine anderen ldr Modelle
       const parsedFileLineData = parseDatFile(data as LineType1Data);
 
       if (parsedFileLineData === undefined) {
@@ -108,7 +112,7 @@ const parseMainFile = (fileContent: string) => {
       modelLines.push(...linesWithAppliedColor);
     }
 
-    processedFiles[name] = { name, specialElements, modelLines };
+    processedFiles[name] = { name, specialElements, modelLines, connections };
 
     graphWithSpecialElements = deleteFromDependencyGraph(name, graphWithSpecialElements);
   }
@@ -124,9 +128,11 @@ const parseMainFile = (fileContent: string) => {
       continue;
     }
 
-    const { modelLines, specialElements: oldSpecialElements } = model;
+    const { modelLines, specialElements: allSpecialElements, connections: allConnections } = model;
     const newLines = [];
-    const newSpecialElements = [...oldSpecialElements];
+    const newSpecialElements = [...allSpecialElements];
+    const newConnections = [...allConnections];
+    const hingeJoints = [] as HingeJointElement[];
 
     for (const line of modelLines) {
       const lineTypeMatch = line.match(/^1/);
@@ -145,17 +151,15 @@ const parseMainFile = (fileContent: string) => {
         continue;
       }
 
-      const { modelLines: subModelLines, specialElements } = processedFiles[fileName];
+      const { modelLines: subModelLines, specialElements, connections } = processedFiles[fileName];
 
-      // Wenn hier eine Line mit type 1 gematcht wurde ist das aktuelle modell von
-      // der gematchten File abhängig, diese wurde vorher im dependencyGraph als
-      // zuerst bearbeitet und wurde demnach schon geparsed
+      const transformedConnections = lego.elements.special.transformArray<ConnectionElement[]>(
+        connections,
+        coordinates,
+        transformationMatrix
+      );
 
-      // Hier muss also jetzt das Submodel in das aktuelle Modell eingepflegt werden
-      // Wichtig ist auch die Sensor rotationsmatrizen zu updaten und in die sensoren
-      // der aktuellen Datei einzufügen
-
-      // console.log(fileName, line, specialElements);
+      let isJointElement = false;
 
       // zuerst die ganze datei transformieren
       const transformedSubFile = transformation.file.transform(subModelLines, {
@@ -165,30 +169,81 @@ const parseMainFile = (fileContent: string) => {
         fileName
       });
 
+      const transformedSpecialElements = lego.elements.special.transformArray(
+        specialElements,
+        coordinates,
+        transformationMatrix
+      );
+      // Elements of subModell
+      // Hier checken ob das Untermodell eine Connection mit dem Main modell teilt.
+      // Wenn ja dann ist das Untermodell ein lose verbundenes Child des Main modells
+      // und muss in den EndPoint eines HingeJoints um beweglich zu sein
+      // Für alle Verbindungen des Main Modells
+      for (const cMain of newConnections) {
+        // Für alle Verbindungen des Child Modells
+        const { coordinate: mainCoordinate } = cMain;
+        for (const cChild of transformedConnections) {
+          // Wenn die Distanz zwischen zwei Verbindungen sehr klein ist wird dies als Connection
+          // gezählt
+          const { coordinate: childCoordinate } = cChild;
+          const distance = transformation.point.distance(mainCoordinate, childCoordinate);
+
+          console.log("Detected HingeJoint:", name, "->", fileName);
+
+          if (distance > 0.1) {
+            break;
+          }
+
+          // Wenn die Distanz klein genug ist wird das Element als HingeJoint von dem Parent
+          // gespeichert
+          isJointElement = true;
+
+          hingeJoints.push({
+            ...processedFiles[fileName],
+            modelLines: transformedSubFile,
+            specialElements: transformedSpecialElements,
+            elementInfo: { coordinate: mainCoordinate, rotation: transformationMatrix }
+          });
+        }
+        // console.log(el);
+      }
+
+      if (isJointElement) {
+        break;
+      }
+
+      // Wenn hier eine Line mit type 1 gematcht wurde ist das aktuelle modell von
+      // der gematchten File abhängig, diese wurde vorher im dependencyGraph also
+      // zuerst bearbeitet und wurde demnach schon geparsed
+
+      // Hier muss also jetzt das Submodel in das aktuelle Modell eingepflegt werden
+      // Wichtig ist auch die Sensor rotationsmatrizen zu updaten und in die sensoren
+      // der aktuellen Datei einzufügen
+
+      // console.log(fileName, line, specialElements);
+
       // Die transformierten Lines an die neuen Lines anhängen
       newLines.push(...transformedSubFile);
-
-      newSpecialElements.push(
-        ...lego.elements.special.transformArray(specialElements, coordinates, transformationMatrix)
-      );
+      newSpecialElements.push(...transformedSpecialElements);
+      newConnections.push(...transformedConnections);
     }
 
     model.modelLines = newLines;
     model.specialElements = newSpecialElements;
+    model.hingeJoints = hingeJoints;
 
     processedFiles[name] = model;
   }
 
-  // console.log(processedFiles);
+  console.log(processedFiles);
 
-  const { modelLines, specialElements } =
-    processedFiles[processedFilesOrder[processedFilesOrder.length - 1]];
+  // Jetzt muss nur noch die Main File zu einem Webots object geparsed werden.
+  const mainFile = processedFiles[processedFilesOrder[processedFilesOrder.length - 1]];
+  console.log("Start parsing main file", mainFile.name);
 
-  const fileInRealCoordinates = transformation.file.toReal(modelLines);
+  const { modelLines, specialElements, hingeJoints } = mainFile;
 
-  const indexedFaceSet = createIndexedFaceSetFromFile(fileInRealCoordinates, specialElements);
-
-  // console.log(indexedFaceSet);
+  const indexedFaceSet = createIndexedFaceSetFromFile(modelLines, specialElements, hingeJoints);
 
   fs.writeFileSync("../LeoCAD/test.txt", indexedFaceSet);
 
