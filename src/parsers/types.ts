@@ -1,4 +1,9 @@
-import { BaseElement, FileNodeWithSpecialElements, SpecialElement } from "../lego/types";
+import {
+  BaseElement,
+  FileNodeWithSpecialElements,
+  SpecialElement,
+  WheelElement
+} from "../lego/types";
 import { Dict } from "../types";
 
 export interface FileNodeInfo {
@@ -18,6 +23,7 @@ export interface ProcessedFile
   name: string;
   modelLines: string[];
   hingeJoints?: HingeJointElement[];
+  wheels: WheelElement[];
 }
 export interface HingeJointElement extends ProcessedFile {
   elementInfo: BaseElement;

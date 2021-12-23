@@ -1,8 +1,8 @@
 export const solid = (
   transformation: string | null,
   rotation: string | null,
-  shape: string,
-  ...rest: string[]
+  elements: string[],
+  boundingObject?: string
 ) => {
   const randomNumber = Math.floor(Math.random() * 10000);
 
@@ -11,10 +11,9 @@ export const solid = (
         ${transformation ? "transformation " + transformation : ""}
         ${rotation ? "rotation " + rotation : ""}
         children [
-            DEF Shape_${randomNumber} ${shape}
-            ${rest.join("\n")}
+            ${elements.join("\n")}
         ]
-        boundingObject USE Shape_${randomNumber}
+        ${boundingObject ? "boundingObject " + boundingObject : ""} 
         physics Physics {
         }
         name "${randomNumber}"

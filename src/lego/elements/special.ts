@@ -1,4 +1,4 @@
-import math from "mathjs";
+import math, { matrix } from "mathjs";
 import { lego } from "..";
 import { FileNodeDict, LineType1Data, Point } from "../../parsers/types";
 import { getLineData, line1ToString } from "../../parsers/utils";
@@ -11,8 +11,10 @@ import {
   DeviceInfoDict,
   FileNodeWithSpecialElementsDict,
   PartTypeDict,
-  SpecialElement
+  SpecialElement,
+  WheelElement
 } from "../types";
+import { wheels } from "./wheels";
 
 export const specialParts: PartTypeDict = {
   ms1040: {
@@ -116,7 +118,8 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
     newGraph[name] = {
       ...node,
       specialElements: [] as SpecialElement[],
-      connections: [] as ConnectionElement[]
+      connections: [] as ConnectionElement[],
+      wheels: [] as WheelElement[]
     };
 
     for (const line of file.split("\n")) {
@@ -130,6 +133,8 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
 
       const { fileName } = lineMatch.groups;
 
+      const { transformationMatrix, coordinates } = getLineData(line) as LineType1Data;
+
       if (specialParts[fileName]) {
         const { name: specialElementName, type, internalName } = specialParts[fileName];
 
@@ -142,7 +147,6 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
           name
         );
         const { basePosition } = lego.elements.special.devices[internalName];
-        const { transformationMatrix, coordinates } = getLineData(line) as LineType1Data;
 
         switch (type) {
           case "sensor": {
@@ -168,6 +172,24 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
             });
           }
         }
+      }
+
+      if (wheels[fileName]) {
+        const { height, radius, coordinate } = wheels[fileName];
+
+        newGraph[name].wheels.push({
+          rotation: transformation.matrix.transform(
+            matrix([
+              [1, 0, 0],
+              [0, 0, -1],
+              [0, 1, 0]
+            ]),
+            transformationMatrix
+          ),
+          coordinate: transformation.point.transform(coordinate, coordinates, transformationMatrix),
+          height,
+          radius
+        });
       }
     }
   }

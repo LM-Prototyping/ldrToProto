@@ -1,4 +1,3 @@
-import { elements } from ".";
 import { IndexedFaceSetObjectType } from "../types";
 
 const createCoordString = ({
@@ -41,6 +40,14 @@ const indexedFaceSet = (object: IndexedFaceSetObjectType) => {
   `;
 };
 
+const cylinder = (height: number, radius: number) => {
+  return `Cylinder {
+    height ${height}
+    radius ${radius}
+  }`;
+};
+
 export const geometry = {
-  indexedFaceSet
+  indexedFaceSet,
+  cylinder
 };

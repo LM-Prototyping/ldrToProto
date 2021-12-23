@@ -11,7 +11,7 @@ import { createIndexedFaceSetFromFile } from "../webots/indexedFaceSet";
 import { transformation } from "../transformation";
 import { lego } from "../lego";
 import { parseDatFile } from "./dat";
-import { ConnectionElement, FileNodeWithSpecialElements } from "../lego/types";
+import { ConnectionElement, WheelElement, WheelPart } from "../lego/types";
 
 /*
  * Parse main file. In the main .ldr file only other files ar included and groups are created.
@@ -80,7 +80,7 @@ const parseMainFile = (fileContent: string) => {
       break;
     }
 
-    const { name, file, specialElements, connections } = fileToProcess;
+    const { name, file, specialElements, connections, wheels } = fileToProcess;
 
     console.log("File to process", name);
 
@@ -112,7 +112,7 @@ const parseMainFile = (fileContent: string) => {
       modelLines.push(...linesWithAppliedColor);
     }
 
-    processedFiles[name] = { name, specialElements, modelLines, connections };
+    processedFiles[name] = { name, specialElements, modelLines, connections, wheels };
 
     graphWithSpecialElements = deleteFromDependencyGraph(name, graphWithSpecialElements);
   }
@@ -128,11 +128,17 @@ const parseMainFile = (fileContent: string) => {
       continue;
     }
 
-    const { modelLines, specialElements: allSpecialElements, connections: allConnections } = model;
+    const {
+      modelLines,
+      specialElements: allSpecialElements,
+      connections: allConnections,
+      wheels: allWheels
+    } = model;
     const newLines = [];
     const newSpecialElements = [...allSpecialElements];
     const newConnections = [...allConnections];
     const hingeJoints = [] as HingeJointElement[];
+    const newWheels = [...allWheels] as WheelElement[];
 
     for (const line of modelLines) {
       const lineTypeMatch = line.match(/^1/);
@@ -151,7 +157,12 @@ const parseMainFile = (fileContent: string) => {
         continue;
       }
 
-      const { modelLines: subModelLines, specialElements, connections } = processedFiles[fileName];
+      const {
+        modelLines: subModelLines,
+        specialElements,
+        connections,
+        wheels
+      } = processedFiles[fileName];
 
       const transformedConnections = lego.elements.special.transformArray<ConnectionElement[]>(
         connections,
@@ -186,11 +197,20 @@ const parseMainFile = (fileContent: string) => {
           // Wenn die Distanz zwischen zwei Verbindungen sehr klein ist wird dies als Connection
           // gezählt
           const { coordinate: childCoordinate } = cChild;
+          const { rotation } = cMain;
           const distance = transformation.point.distance(mainCoordinate, childCoordinate);
 
-          console.log("Detected HingeJoint:", name, "->", fileName);
+          console.log(
+            "Detected HingeJoint:",
+            name,
+            "->",
+            fileName,
+            mainCoordinate,
+            childCoordinate,
+            transformation.point.transform(childCoordinate, mainCoordinate, transformationMatrix)
+          );
 
-          if (distance > 0.1) {
+          if (distance > 5) {
             break;
           }
 
@@ -202,15 +222,24 @@ const parseMainFile = (fileContent: string) => {
             ...processedFiles[fileName],
             modelLines: transformedSubFile,
             specialElements: transformedSpecialElements,
-            elementInfo: { coordinate: mainCoordinate, rotation: transformationMatrix }
+            elementInfo: {
+              coordinate: mainCoordinate,
+              rotation: rotation
+            }
           });
         }
         // console.log(el);
       }
 
       if (isJointElement) {
-        break;
+        continue;
       }
+
+      const transformedWheels = lego.elements.special.transformArray<WheelElement[]>(
+        wheels,
+        coordinates,
+        transformationMatrix
+      );
 
       // Wenn hier eine Line mit type 1 gematcht wurde ist das aktuelle modell von
       // der gematchten File abhängig, diese wurde vorher im dependencyGraph also
@@ -226,6 +255,7 @@ const parseMainFile = (fileContent: string) => {
       newLines.push(...transformedSubFile);
       newSpecialElements.push(...transformedSpecialElements);
       newConnections.push(...transformedConnections);
+      newWheels.push(...transformedWheels);
     }
 
     model.modelLines = newLines;
@@ -241,9 +271,14 @@ const parseMainFile = (fileContent: string) => {
   const mainFile = processedFiles[processedFilesOrder[processedFilesOrder.length - 1]];
   console.log("Start parsing main file", mainFile.name);
 
-  const { modelLines, specialElements, hingeJoints } = mainFile;
+  const { modelLines, specialElements, hingeJoints, wheels } = mainFile;
 
-  const indexedFaceSet = createIndexedFaceSetFromFile(modelLines, specialElements, hingeJoints);
+  const indexedFaceSet = createIndexedFaceSetFromFile(
+    modelLines,
+    specialElements,
+    hingeJoints,
+    wheels
+  );
 
   fs.writeFileSync("../LeoCAD/test.txt", indexedFaceSet);
 

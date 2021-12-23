@@ -1,7 +1,8 @@
+import { matrix } from "mathjs";
 import { webots } from ".";
 import { lego } from "../lego";
 import { specialParts } from "../lego/elements/special";
-import { DeviceInfo, DeviceInfoDict, SpecialElement } from "../lego/types";
+import { DeviceInfo, DeviceInfoDict, SpecialElement, WheelElement } from "../lego/types";
 import {
   HingeJointElement,
   LineType1Data,
@@ -24,10 +25,10 @@ const roundPoint = ({ x, y, z }: Point) => ({
 export const createIndexedFaceSetFromFile = (
   file: string[],
   specialElements: SpecialElement[],
-  hingeJoints: HingeJointElement[] = []
+  hingeJoints: HingeJointElement[] = [],
+  wheels: WheelElement[]
 ) => {
   //
-  console.log(hingeJoints);
 
   // Zuerst die File in reale Coordinaten transformieren und dann parsen
   const fileToReal = transformation.file.toReal(file);
@@ -92,11 +93,13 @@ export const createIndexedFaceSetFromFile = (
           objects[color][dAsString] = maxIndex;
           maxIndex++;
         }
-        objects[color].coordIndex.push([indexA, indexB, indexC, indexD, "-1"].join(" "));
-        objects[color].coordIndex.push([indexD, indexC, indexB, indexA, "-1"].join(" "));
+        // objects[color].coordIndex.push([indexA, indexB, indexC, indexD, "-1"].join(" "));
+        objects[color].coordIndex.push([indexA, indexB, indexC, "-1"].join(" "));
+        objects[color].coordIndex.push([indexC, indexD, indexA, "-1"].join(" "));
+        // objects[color].coordIndex.push([indexD, indexC, indexB, indexA, "-1"].join(" "));
 
-        // objects[color].coordIndex.push([indexC, indexB, indexA, "-1"].join(" "));
-        // objects[color].coordIndex.push([indexD, indexC, indexA, "-1"].join(" "));
+        objects[color].coordIndex.push([indexC, indexB, indexA, "-1"].join(" "));
+        objects[color].coordIndex.push([indexA, indexD, indexC, "-1"].join(" "));
         break;
       }
       case "3": {
@@ -175,11 +178,13 @@ export const createIndexedFaceSetFromFile = (
 
   const hingeJointsAsString = [] as string[];
   for (const hinge of hingeJoints) {
-    const { modelLines, specialElements, hingeJoints, elementInfo } = hinge;
-    const endPoint = createIndexedFaceSetFromFile(modelLines, specialElements, hingeJoints);
+    const { modelLines, specialElements, hingeJoints, elementInfo, wheels } = hinge;
+    const endPoint = createIndexedFaceSetFromFile(modelLines, specialElements, hingeJoints, wheels);
 
     const { coordinate, rotation } = elementInfo;
+    console.log(rotation, coordinate);
     const rotatedAxis = transformation.point.transform({ x: 1, y: 0, z: 0 }, coordinate, rotation);
+    console.log(rotatedAxis);
     const hingeJoint = webots.elements.hingeJoint(
       transformation.point.subtract(rotatedAxis, coordinate),
       transformation.point.toReal(coordinate),
@@ -188,13 +193,34 @@ export const createIndexedFaceSetFromFile = (
     hingeJointsAsString.push(hingeJoint);
   }
 
-  // Erstelle aus den einzelnen Shapes ein Solid Element
+  // Ein Element kann immer nur ein einziges Bounding Object haben
+  if (wheels.length > 1) {
+    console.log(
+      "Objekt hat mehr als ein Wheel. Wenn in einem Modell mehrere Wheels sind kann das BoundingObject nicht korrekt erstellt werden."
+    );
+  }
+  const wheelsAsString = [] as string[];
+  for (const wheel of wheels) {
+    const { coordinate, rotation, height, radius } = wheel;
+    console.log(rotation, coordinate);
+    const rotationString = rotationMatrixToAngleAxis(rotation, coordinate);
+    console.log(rotationString);
+
+    const element = webots.elements.transform(
+      transformation.point.toReal(coordinate),
+      rotationString,
+      webots.elements.geometry.cylinder(height * 0.01, radius * 0.01)
+    );
+    wheelsAsString.push(element);
+
+    break;
+  }
+
   const solid = webots.elements.solid(
     null,
     null,
-    faceSets.join("\n"),
-    devices.join("\n"),
-    hingeJointsAsString.join("\n")
+    [faceSets.join("\n"), devices.join("\n"), hingeJointsAsString.join("\n")],
+    wheelsAsString.join("\n")
   );
 
   // Jetzt HingeJoint Elemente erstellen

@@ -65,8 +65,6 @@ const rotation = (from: Point, to: Point): math.Matrix => {
     [x * z * k - y, y * z * k + x, z * z * k + cosA]
   ]);
 
-  console.log(fromPointArray, toPointArray, rotationMatrix);
-
   return rotationMatrix;
 };
 

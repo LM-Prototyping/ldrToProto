@@ -126,7 +126,7 @@ const handleType4 = (line: string) => {
 
 const createLineMatchRegex = (type: string | number, matchCoords: string[]) =>
   `^${type}\\s+(?<color>(\\d+|#[A-F\\d]{6}))${matchCoords
-    .map((identifier) => `\\s+(?<${identifier}>-?\\d*\\.?\\d*)`)
+    .map((identifier) => `\\s+(?<${identifier}>-?\\d*\\.?\\d*(e[+-]?\\d+)?)`)
     .join("")}`;
 
 const matchLine = (line: string, match: RegExp) => {

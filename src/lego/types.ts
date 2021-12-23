@@ -19,11 +19,20 @@ export interface SpecialElement extends BaseElement {
 }
 export type ConnectionElement = BaseElement;
 
+export interface WheelPart {
+  coordinate: Point;
+  height: number;
+  radius: number;
+}
+export type WheelPartDict = Dict<WheelPart>;
+export type WheelElement = BaseElement & WheelPart;
+
 export type SpecialElementDict = Dict<SpecialElement>;
 
 export interface FileNodeWithSpecialElements extends FileNode {
   specialElements: SpecialElement[];
   connections: ConnectionElement[];
+  wheels: WheelElement[];
 }
 
 export type FileNodeWithSpecialElementsDict = Dict<FileNodeWithSpecialElements>;
