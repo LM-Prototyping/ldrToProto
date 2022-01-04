@@ -152,7 +152,15 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
           case "sensor": {
             newGraph[name].specialElements.push({
               name: internalName,
-              rotation: transformationMatrix,
+              // transformation.matrix.transform(
+              rotation: transformation.matrix.transform(
+                matrix([
+                  [1, 0, 0],
+                  [0, 0, -1],
+                  [0, 1, 0]
+                ]),
+                transformationMatrix
+              ),
               coordinate: transformation.point.transform(
                 basePosition,
                 coordinates,
@@ -163,7 +171,14 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
           }
           case "connection": {
             newGraph[name].connections.push({
-              rotation: transformationMatrix,
+              rotation: transformation.matrix.transform(
+                matrix([
+                  [1, 0, 0],
+                  [0, 0, -1],
+                  [0, 1, 0]
+                ]),
+                transformationMatrix
+              ),
               coordinate: transformation.point.transform(
                 basePosition,
                 coordinates,
@@ -181,8 +196,8 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
           rotation: transformation.matrix.transform(
             matrix([
               [1, 0, 0],
-              [0, 0, -1],
-              [0, 1, 0]
+              [0, 0, 1],
+              [0, -1, 0]
             ]),
             transformationMatrix
           ),

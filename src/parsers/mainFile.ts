@@ -280,7 +280,9 @@ const parseMainFile = (fileContent: string) => {
     wheels
   );
 
-  fs.writeFileSync("../LeoCAD/test.txt", indexedFaceSet);
+  const robotShape = indexedFaceSet.replace("Solid", "Robot");
+
+  fs.writeFileSync("../LeoCAD/test.txt", robotShape);
 
   // TODO
   // const decodedFiles = decodeFiles(files)

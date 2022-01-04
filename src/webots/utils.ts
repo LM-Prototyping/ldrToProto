@@ -33,8 +33,6 @@ export const hexColorToBaseColorString = (hex: string) => {
 };
 
 export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => {
-  // const realMatrix = transformation.matrix.ldrToWebots(matrix, coord);
-
   const A = matrix.toArray() as number[][];
 
   const angle = acos((A[0][0] + A[1][1] + A[2][2] - 1) / 2);
@@ -62,6 +60,8 @@ export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => 
     p.y = A[0][2] - A[2][0];
     p.z = A[1][0] - A[0][1];
   }
+
+  console.log(A, p, angle);
 
   return { ...p, angle };
 };

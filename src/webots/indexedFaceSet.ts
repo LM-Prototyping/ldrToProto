@@ -168,7 +168,9 @@ export const createIndexedFaceSetFromFile = (
 
       const { buildElement } = lego.elements.special.devices[name] as DeviceInfo;
 
-      let rotation = rotationMatrixToAngleAxis(rotationMatrix, coordinate);
+      const realMatrix = transformation.matrix.ldrToWebots(rotationMatrix, coordinate);
+
+      let rotation = rotationMatrixToAngleAxis(realMatrix, coordinate);
 
       const transformedNewPoint = transformation.point.toReal(coordinate);
 
