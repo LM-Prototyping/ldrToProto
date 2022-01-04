@@ -22,8 +22,8 @@ const toReal = (file: string[]) =>
     coordinates: { x: 0, y: 0, z: 0 },
     transformationMatrix: matrix([
       [0.0004, 0, 0],
-      [0, -0.0004, 0],
-      [0, 0, -0.0004]
+      [0, 0, 0.0004],
+      [0, -0.0004, 0]
     ])
   } as LineType1Data);
 
