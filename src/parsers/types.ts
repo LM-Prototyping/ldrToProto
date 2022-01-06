@@ -27,6 +27,7 @@ export interface ProcessedFile
 }
 export interface HingeJointElement extends ProcessedFile {
   elementInfo: BaseElement;
+  isMotor: string | boolean;
 }
 export type ProcessedFilesDict = Dict<ProcessedFile>;
 

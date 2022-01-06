@@ -1,15 +1,7 @@
-import { matrix } from "mathjs";
 import { webots } from ".";
 import { lego } from "../lego";
-import { specialParts } from "../lego/elements/special";
-import { DeviceInfo, DeviceInfoDict, SpecialElement, WheelElement } from "../lego/types";
-import {
-  HingeJointElement,
-  LineType1Data,
-  LineType3Data,
-  LineType4Data,
-  Point
-} from "../parsers/types";
+import { DeviceInfo, SpecialElement, WheelElement } from "../lego/types";
+import { HingeJointElement, LineType3Data, LineType4Data, Point } from "../parsers/types";
 import { getLineData } from "../parsers/utils";
 import { transformation } from "../transformation";
 import { elements } from "./elements";
@@ -22,7 +14,7 @@ const roundPoint = ({ x, y, z }: Point) => ({
   z: Number(z.toFixed(5))
 });
 
-export const createIndexedFaceSetFromFile = (
+export const fileToShape = (
   file: string[],
   specialElements: SpecialElement[],
   hingeJoints: HingeJointElement[] = [],
@@ -180,8 +172,8 @@ export const createIndexedFaceSetFromFile = (
 
   const hingeJointsAsString = [] as string[];
   for (const hinge of hingeJoints) {
-    const { modelLines, specialElements, hingeJoints, elementInfo, wheels } = hinge;
-    const endPoint = createIndexedFaceSetFromFile(modelLines, specialElements, hingeJoints, wheels);
+    const { modelLines, specialElements, hingeJoints, elementInfo, wheels, isMotor } = hinge;
+    const endPoint = fileToShape(modelLines, specialElements, hingeJoints, wheels);
 
     const { coordinate, rotation } = elementInfo;
     console.log(rotation, coordinate);
@@ -190,7 +182,8 @@ export const createIndexedFaceSetFromFile = (
     const hingeJoint = webots.elements.hingeJoint(
       transformation.point.subtract(rotatedAxis, coordinate),
       transformation.point.toReal(coordinate),
-      endPoint
+      endPoint,
+      isMotor
     );
     hingeJointsAsString.push(hingeJoint);
   }

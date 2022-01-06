@@ -17,7 +17,9 @@ export interface BaseElement {
 export interface SpecialElement extends BaseElement {
   name: string;
 }
-export type ConnectionElement = BaseElement;
+export interface ConnectionElement extends BaseElement {
+  isMotor: boolean;
+}
 
 export interface WheelPart {
   coordinate: Point;

@@ -77,11 +77,6 @@ export const specialParts: PartTypeDict = {
     name: "Ultrasonic Sensor",
     internalName: "ultrasonic_sensor"
   },
-  53787: {
-    type: "motor",
-    name: "NXT Motor",
-    internalName: "nxt_motor"
-  },
   3673: {
     type: "connection",
     name: "Technik Pin",
@@ -133,7 +128,7 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
 
       const { fileName } = lineMatch.groups;
 
-      const { transformationMatrix, coordinates } = getLineData(line) as LineType1Data;
+      const { transformationMatrix, coordinates, color } = getLineData(line) as LineType1Data;
 
       if (specialParts[fileName]) {
         const { name: specialElementName, type, internalName } = specialParts[fileName];
@@ -183,7 +178,8 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
                 basePosition,
                 coordinates,
                 transformationMatrix
-              )
+              ),
+              isMotor: color === "4"
             });
           }
         }

@@ -5,13 +5,11 @@ import {
 } from "./dependencyGraph";
 import { getLineData } from "./utils";
 import { applyColorToLines } from "../colors";
-import fs from "fs";
 import { HingeJointElement, LineType1Data, ProcessedFilesDict } from "./types";
-import { createIndexedFaceSetFromFile } from "../webots/indexedFaceSet";
 import { transformation } from "../transformation";
 import { lego } from "../lego";
 import { parseDatFile } from "./dat";
-import { ConnectionElement, WheelElement, WheelPart } from "../lego/types";
+import { ConnectionElement, WheelElement } from "../lego/types";
 
 /*
  * Parse main file. In the main .ldr file only other files ar included and groups are created.
@@ -185,6 +183,13 @@ const parseMainFile = (fileContent: string) => {
         coordinates,
         transformationMatrix
       );
+
+      const transformedWheels = lego.elements.special.transformArray<WheelElement[]>(
+        wheels,
+        coordinates,
+        transformationMatrix
+      );
+
       // Elements of subModell
       // Hier checken ob das Untermodell eine Connection mit dem Main modell teilt.
       // Wenn ja dann ist das Untermodell ein lose verbundenes Child des Main modells
@@ -192,11 +197,11 @@ const parseMainFile = (fileContent: string) => {
       // Für alle Verbindungen des Main Modells
       for (const cMain of newConnections) {
         // Für alle Verbindungen des Child Modells
-        const { coordinate: mainCoordinate } = cMain;
+        const { coordinate: mainCoordinate, isMotor: isParentMotor } = cMain;
         for (const cChild of transformedConnections) {
           // Wenn die Distanz zwischen zwei Verbindungen sehr klein ist wird dies als Connection
           // gezählt
-          const { coordinate: childCoordinate } = cChild;
+          const { coordinate: childCoordinate, isMotor: isChildMotor } = cChild;
           const { rotation } = cMain;
           const distance = transformation.point.distance(mainCoordinate, childCoordinate);
 
@@ -222,10 +227,13 @@ const parseMainFile = (fileContent: string) => {
             ...processedFiles[fileName],
             modelLines: transformedSubFile,
             specialElements: transformedSpecialElements,
+            wheels: transformedWheels,
             elementInfo: {
               coordinate: mainCoordinate,
               rotation: rotation
-            }
+            },
+            isMotor:
+              (isParentMotor || isChildMotor) && (name + "_" + fileName).replace(/(\s+|\.ldr)/g, "")
           });
         }
         // console.log(el);
@@ -234,12 +242,6 @@ const parseMainFile = (fileContent: string) => {
       if (isJointElement) {
         continue;
       }
-
-      const transformedWheels = lego.elements.special.transformArray<WheelElement[]>(
-        wheels,
-        coordinates,
-        transformationMatrix
-      );
 
       // Wenn hier eine Line mit type 1 gematcht wurde ist das aktuelle modell von
       // der gematchten File abhängig, diese wurde vorher im dependencyGraph also
@@ -271,29 +273,7 @@ const parseMainFile = (fileContent: string) => {
   const mainFile = processedFiles[processedFilesOrder[processedFilesOrder.length - 1]];
   console.log("Start parsing main file", mainFile.name);
 
-  const { modelLines, specialElements, hingeJoints, wheels } = mainFile;
-
-  const indexedFaceSet = createIndexedFaceSetFromFile(
-    modelLines,
-    specialElements,
-    hingeJoints,
-    wheels
-  );
-
-  const robotShape = indexedFaceSet.replace("Solid", "Robot");
-
-  fs.writeFileSync("../LeoCAD/test.txt", robotShape);
-
-  // TODO
-  // const decodedFiles = decodeFiles(files)
-
-  // for (const file of files) {
-  //   for (const line of file.split("\n")) {
-  //     console.log(getLineData(line));
-  //   }
-  // }
-
-  // Im ersten Schritt verschiedene Files matchen
+  return mainFile;
 };
 
 export default parseMainFile;
