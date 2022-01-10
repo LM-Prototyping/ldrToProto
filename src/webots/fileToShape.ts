@@ -22,6 +22,8 @@ export const fileToShape = (
 ) => {
   //
 
+  // console.log(wheels);
+
   // Zuerst die File in reale Coordinaten transformieren und dann parsen
   const fileToReal = transformation.file.toReal(file);
 
@@ -176,9 +178,9 @@ export const fileToShape = (
     const endPoint = fileToShape(modelLines, specialElements, hingeJoints, wheels);
 
     const { coordinate, rotation } = elementInfo;
-    console.log(rotation, coordinate);
+    // console.log(rotation, coordinate);
     const rotatedAxis = transformation.point.transform({ x: 1, y: 0, z: 0 }, coordinate, rotation);
-    console.log(rotatedAxis);
+    // console.log(rotatedAxis);
     const hingeJoint = webots.elements.hingeJoint(
       transformation.point.subtract(rotatedAxis, coordinate),
       transformation.point.toReal(coordinate),
@@ -197,9 +199,9 @@ export const fileToShape = (
   const wheelsAsString = [] as string[];
   for (const wheel of wheels) {
     const { coordinate, rotation, height, radius } = wheel;
-    console.log(rotation, coordinate);
+    // console.log(rotation, coordinate);
     const rotationString = rotationMatrixToAngleAxis(rotation, coordinate);
-    console.log(rotationString);
+    // console.log(rotationString);
 
     const element = webots.elements.transform(
       transformation.point.toReal(coordinate),

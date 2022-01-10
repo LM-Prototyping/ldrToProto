@@ -195,7 +195,7 @@ const parseMainFile = (fileContent: string) => {
       // Wenn ja dann ist das Untermodell ein lose verbundenes Child des Main modells
       // und muss in den EndPoint eines HingeJoints um beweglich zu sein
       // Für alle Verbindungen des Main Modells
-      for (const cMain of newConnections) {
+      for (const cMain of allConnections) {
         // Für alle Verbindungen des Child Modells
         const { coordinate: mainCoordinate, isMotor: isParentMotor } = cMain;
         for (const cChild of transformedConnections) {
@@ -263,6 +263,7 @@ const parseMainFile = (fileContent: string) => {
     model.modelLines = newLines;
     model.specialElements = newSpecialElements;
     model.hingeJoints = hingeJoints;
+    model.wheels = newWheels;
 
     processedFiles[name] = model;
   }

@@ -1,5 +1,4 @@
-// Weight always in grams
-// radius in cm
+// radius and height in cm
 
 import { WheelPartDict } from "../types";
 
@@ -26,43 +25,43 @@ const wheelParts: WheelPartDict = {
   },
   "22969c02": {
     coordinate: { x: 0, y: 0, z: 0 },
-    radius: 5,
+    radius: 5.2,
     height: 6
   },
   "22969c01": {
     coordinate: { x: 0, y: 0, z: 0 },
-    radius: 5,
+    radius: 5.2,
     height: 6
   },
   "56903c01": {
     coordinate: { x: 0, y: 0, z: 0 },
-    radius: 0.9,
-    height: 0.8
+    radius: 1.17,
+    height: 0.75
   },
   "2695c01": {
-    coordinate: { x: 0, y: 0, z: 0 },
-    radius: 1.5,
+    coordinate: { x: 0, y: 0, z: -8 },
+    radius: 2.18,
     height: 1.3
   },
   "56904c01": {
     coordinate: { x: 0, y: 0, z: 0 },
-    radius: 1.5,
+    radius: 2.15,
     height: 1.4
   },
   "56145c01": {
     coordinate: { x: 0, y: 0, z: 0 },
-    radius: 1.52,
-    height: 2
+    radius: 2.15,
+    height: 2.65
   },
   "56908c01": {
     coordinate: { x: 0, y: 0, z: 0 },
-    radius: 2.151,
-    height: 2.6
+    radius: 4.1,
+    height: 3.8
   },
   "56908c02": {
     coordinate: { x: 0, y: 0, z: 0 },
-    radius: 2.151,
-    height: 2.6
+    radius: 4.1,
+    height: 4
   },
   "2996c01": {
     coordinate: { x: 0, y: 0, z: 0 },
@@ -70,9 +69,9 @@ const wheelParts: WheelPartDict = {
     height: 4
   },
   "44772c02": {
-    coordinate: { x: 0, y: 0, z: 0 },
-    radius: 2.53,
-    height: 3.4
+    coordinate: { x: 0, y: 0, z: -3 },
+    radius: 5.3,
+    height: 4
   },
   "44293": {
     coordinate: { x: 0, y: 0, z: 0 },
@@ -80,19 +79,19 @@ const wheelParts: WheelPartDict = {
     height: 1.4
   },
   "15038c01": {
-    coordinate: { x: 0, y: 0, z: 0 },
-    radius: 2.3,
-    height: 3.4
+    coordinate: { x: 0, y: 0, z: -3 },
+    radius: 5.3,
+    height: 4
   },
   "88517c01": {
     coordinate: { x: 0, y: 0, z: 0 },
-    radius: 3.75,
-    height: 1.7
+    radius: 5,
+    height: 1.8
   },
   "32004bc01": {
-    coordinate: { x: 0, y: 0, z: 0 },
-    radius: 2.5,
-    height: 2
+    coordinate: { x: 0, y: 0, z: -1.5 },
+    radius: 3.4,
+    height: 2.3
   }
 };
 
