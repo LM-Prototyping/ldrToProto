@@ -1,6 +1,8 @@
 # Wheels
 
-Wheels are the only parts for which bounding objects are generated.
+Wheels are the only elements that are generated with a bounding object. For each wheel the bounding object will be a cylinder with the specified radius and height.
+
+> Read [here](#TODO) how you can create a wheel inside LeoCAD or your preferable brickbuilder IDE.
 
 ## Supported wheels
 
@@ -19,41 +21,4 @@ Values for radius and height are in cm.
 
 ## Add wheels
 
-You can easily add new wheel by adding a new object to the `wheels.ts` file. You can find the wheels file by following this directory: [/src/lego/elements/wheels.ts](#TODO).
-You will find a big object in here:
-
-```typescript
-const wheelParts: WheelPartDict = {
-  "22253c02": {
-    coordinate: { x: 0, y: 0, z: 0 },
-    radius: 2.48,
-    height: 2.8
-  },
-  ...
-}
-```
-
-Each wheel is a single objects with a `coodinate`, `radius` and `height` property.
-
-```typescript
-interface Wheel {
-  coordinate: Point;
-  radius: number;
-  height: number;
-}
-```
-
-The key is the id of the wheel and the name of the wheels .data file. The coordinate property denotes the origin of the wheel component inside the .data file.
-
-To add a new wheel simply add a new wheel object to the already existing _wheelParts_-object:
-
-```typescript
-const wheelParts: WheelPartDict = {
-  ...,
-  [wheelId]: {
-    coordinate: <Offset of wheels origin>,
-    radius: <Wheels radius>,
-    height: <Wheels height>
-  }
-}
-```
+A documentation of how you can add new wheels can be found [here](#./addElements.md).

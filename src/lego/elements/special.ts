@@ -1,7 +1,7 @@
 import math, { matrix } from "mathjs";
 import { lego } from "..";
 import { FileNodeDict, LineType1Data, Point } from "../../parsers/types";
-import { getLineData, line1ToString } from "../../parsers/utils";
+import { getLineData } from "../../parsers/utils";
 import { transformation } from "../../transformation";
 import { webots } from "../../webots";
 import { Rotation } from "../../webots/types";
@@ -17,56 +17,56 @@ import {
 import { wheels } from "./wheels";
 
 export const specialParts: PartTypeDict = {
-  ms1040: {
-    type: "sensor",
-    name: "Accelerometer",
-    internalName: "accelerometer"
-  },
-  ms1038: {
-    type: "sensor",
-    name: "Color Sensor",
-    internalName: "color_sensor"
-  },
-  64892: {
-    type: "sensor",
-    name: "Color Sensor/ Color Lamp",
-    internalName: "color_sensor_color_lamp"
-  },
+  // ms1040: {
+  //   type: "sensor",
+  //   name: "Accelerometer",
+  //   internalName: "accelerometer"
+  // },
+  // ms1038: {
+  //   type: "sensor",
+  //   name: "Color Sensor",
+  //   internalName: "color_sensor"
+  // },
+  // 64892: {
+  //   type: "sensor",
+  //   name: "Color Sensor/ Color Lamp",
+  //   internalName: "color_sensor_color_lamp"
+  // },
   ms1034: {
     type: "sensor",
     name: "Compass Sensor",
     internalName: "compass_sensor"
   },
-  ms1044: {
-    type: "sensor",
-    name: "Gyroskop",
-    internalName: "gyroskop"
-  },
-  ms1042: {
-    type: "sensor",
-    name: "Infrared Sensor",
-    internalName: "infrared_sensor"
-  },
-  55969: {
-    type: "sensor",
-    name: "Light Sensor",
-    internalName: "light_sensor"
-  },
-  ms1048: {
-    type: "sensor",
-    name: "RFID Sensor",
-    internalName: "rfid_sensor"
-  },
-  55963: {
-    type: "sensor",
-    name: "Sound Sensor",
-    internalName: "sound_sensor"
-  },
-  62840: {
-    type: "sensor",
-    name: "Temperatur Sensor",
-    internalName: "temperatur_sensor"
-  },
+  // ms1044: {
+  //   type: "sensor",
+  //   name: "Gyroskop",
+  //   internalName: "gyroskop"
+  // },
+  // ms1042: {
+  //   type: "sensor",
+  //   name: "Infrared Sensor",
+  //   internalName: "infrared_sensor"
+  // },
+  // 55969: {
+  //   type: "sensor",
+  //   name: "Light Sensor",
+  //   internalName: "light_sensor"
+  // },
+  // ms1048: {
+  //   type: "sensor",
+  //   name: "RFID Sensor",
+  //   internalName: "rfid_sensor"
+  // },
+  // 55963: {
+  //   type: "sensor",
+  //   name: "Sound Sensor",
+  //   internalName: "sound_sensor"
+  // },
+  // 62840: {
+  //   type: "sensor",
+  //   name: "Temperatur Sensor",
+  //   internalName: "temperatur_sensor"
+  // },
   53793: {
     type: "sensor",
     name: "Touch Sensor",
@@ -79,7 +79,7 @@ export const specialParts: PartTypeDict = {
   },
   3673: {
     type: "connection",
-    name: "Technik Pin",
+    name: "Technic Pin",
     internalName: "technic_pin"
   }
 };
@@ -93,6 +93,14 @@ const partsDeviceInfo: DeviceInfoDict = {
       z: -80
     },
     buildElement: webots.devices.sensors.distance
+  },
+  touch_sensor: {
+    basePosition: {
+      x: 0,
+      y: -40,
+      z: -90
+    },
+    buildElement: webots.devices.sensors.touch
   },
   technic_pin: {
     basePosition: {
