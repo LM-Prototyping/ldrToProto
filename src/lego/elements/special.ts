@@ -102,6 +102,14 @@ const partsDeviceInfo: DeviceInfoDict = {
     },
     buildElement: webots.devices.sensors.touch
   },
+  compass_sensor: {
+    basePosition: {
+      x: 0,
+      y: -40,
+      z: -90
+    },
+    buildElement: webots.devices.sensors.compass
+  },
   technic_pin: {
     basePosition: {
       x: 1,
@@ -150,6 +158,12 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
           name
         );
         const { basePosition } = lego.elements.special.devices[internalName];
+
+        if (internalName === specialParts[53793].internalName) {
+          // Touch sensor
+
+          continue;
+        }
 
         switch (type) {
           case "sensor": {

@@ -23,8 +23,17 @@ const buildDistanceSensor = (t: Point, rotation: Rotation, name: string) => {
 const buildTouchSensor = (t: Point, rotation: Rotation, name: string) => `
 `;
 
-const buildCompassSensor = (t: Point, rotation: Rotation, name: string) => `
-`;
+const buildCompassSensor = (t: Point, rotation: Rotation, name: string) => {
+  const { lookupTable, resolution } = configuration.compass_sensor;
+
+  return `
+    Compass {
+      lookupTable ${lookupTable}
+      resolution ${resolution}
+      name "${name}"
+    }
+  `;
+};
 
 export const sensors = {
   distance: buildDistanceSensor,

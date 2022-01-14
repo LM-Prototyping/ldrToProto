@@ -5,6 +5,10 @@ export const configuration = {
     numberOfRays: 5,
     aperture: 0.2618
   },
+  compass_sensor: {
+    lookupTable: [],
+    resolution: -1
+  },
   rotational_motor: {
     maxVelocity: 20
   },
