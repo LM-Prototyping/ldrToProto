@@ -162,6 +162,73 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
         if (internalName === specialParts[53793].internalName) {
           // Touch sensor
 
+          // Search for all green connectors
+          const connectors = [];
+          let rotationMatrix = transformationMatrix;
+          for (const line of file.split("\n")) {
+            const lineMatch = line.match(
+              /^1\s+(#[A-Fa-f\d]{6}|\d+)\s+(-?\d*.?\d*\s+){12}(?<fileName>[\w\d#-_\//]*)\./
+            );
+
+            if (!lineMatch || !lineMatch.groups) {
+              continue;
+            }
+
+            const { fileName } = lineMatch.groups;
+
+            if (!specialParts[fileName] || specialParts[fileName].internalName !== "technic_pin") {
+              continue;
+            }
+
+            const {
+              transformationMatrix: tM,
+              coordinates,
+              color
+            } = getLineData(line) as LineType1Data;
+
+            // Color must be green for touch sensor
+            if (color !== "2") {
+              continue;
+            }
+
+            connectors.push(coordinates);
+            rotationMatrix = tM;
+          }
+
+          if (connectors.length != 4) {
+            console.log("Specifying bounding object for touch sensor only works with 4 pins");
+            continue;
+          }
+
+          // Connectors müssen immer in einer oberen ecke starten und dann die andere obere ecke nehmen
+          const sizeX = transformation.point.distance(connectors[0], connectors[1]);
+          const sizeZ = transformation.point.distance(connectors[0], connectors[3]);
+
+          const center = transformation.point.subtract(
+            coordinates,
+            transformation.point.add(
+              connectors[2],
+              transformation.point.multiply(
+                transformation.point.subtract(connectors[2], connectors[0]),
+                0.5
+              )
+            )
+          );
+
+          newGraph[name].specialElements.push({
+            name: internalName,
+            rotation: transformation.matrix.transform(
+              matrix([
+                [1, 0, 0],
+                [0, 0, -1],
+                [0, 1, 0]
+              ]),
+              rotationMatrix
+            ),
+            coordinate: transformation.point.transform(center, coordinates, transformationMatrix),
+            distance: { x: sizeX, z: sizeZ, y: 20 }
+          });
+
           continue;
         }
 

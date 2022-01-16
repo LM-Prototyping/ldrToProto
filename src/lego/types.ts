@@ -16,6 +16,7 @@ export interface BaseElement {
 }
 export interface SpecialElement extends BaseElement {
   name: string;
+  distance?: Point;
 }
 export interface ConnectionElement extends BaseElement {
   isMotor: boolean;
@@ -41,6 +42,13 @@ export type FileNodeWithSpecialElementsDict = Dict<FileNodeWithSpecialElements>;
 
 export interface DeviceInfo {
   basePosition: Point;
-  buildElement: (transformation: Point, rotation: Rotation, name: string) => string;
+  buildElement: (
+    transformation: Point,
+    rotation: Rotation,
+    name: string,
+    options?: {
+      distance?: Point;
+    }
+  ) => string;
 }
 export type DeviceInfoDict = Dict<DeviceInfo>;

@@ -3,6 +3,7 @@ import { transformation } from "../../transformation";
 import { Rotation } from "../types";
 
 import { configuration } from "../../configuration";
+import { webots } from "..";
 
 const buildDistanceSensor = (t: Point, rotation: Rotation, name: string) => {
   const { lookupTable, type, numberOfRays, aperture } = configuration.distance_sensor;
@@ -20,8 +21,33 @@ const buildDistanceSensor = (t: Point, rotation: Rotation, name: string) => {
 `;
 };
 
-const buildTouchSensor = (t: Point, rotation: Rotation, name: string) => `
+const buildTouchSensor = (
+  t: Point,
+  rotation: Rotation,
+  name: string,
+  options?: { distance?: Point }
+) => {
+  if (!options) {
+    return "";
+  }
+
+  const { distance } = options;
+
+  if (!distance) {
+    return "";
+  }
+
+  return `
+    TouchSensor {
+      name "${name}"
+      boundingObject ${webots.elements.transform(
+        t,
+        rotation,
+        webots.elements.geometry.box(transformation.point.multiply(distance, 0.0004))
+      )}
+    }
 `;
+};
 
 const buildCompassSensor = (t: Point, rotation: Rotation, name: string) => {
   const { lookupTable, resolution } = configuration.compass_sensor;

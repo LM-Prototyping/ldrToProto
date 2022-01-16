@@ -1,7 +1,7 @@
 import math, {
   matrix,
   add as addVectors,
-  multiply,
+  multiply as multiplyMatrix,
   round,
   sin,
   acos,
@@ -10,7 +10,8 @@ import math, {
   pi,
   cross,
   dot,
-  cos
+  cos,
+  zeros
 } from "mathjs";
 import { transformation } from ".";
 import { Point } from "../parsers/types";
@@ -25,6 +26,12 @@ const toVector = (point: Point) => {
 const add = (a: Point, b: Point) => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z });
 
 const subtract = (a: Point, b: Point) => ({ x: b.x - a.x, y: b.y - a.y, z: b.z - a.z });
+
+const multiply = (a: Point, factor: number) => ({
+  x: a.x * factor,
+  y: a.y * factor,
+  z: a.z * factor
+});
 
 const toArray = ({ x, y, z }: Point) => [x, y, z];
 
@@ -41,7 +48,7 @@ const transform = (point: Point, coordinateOffset: Point, transformationMatrix: 
   const vector = toVector(point);
 
   return transformation.vector.toPoint(
-    round(addVectors(multiply(transformationMatrix, vector), offsetMatrix) as math.Matrix, 9)
+    round(addVectors(multiplyMatrix(transformationMatrix, vector), offsetMatrix) as math.Matrix, 9)
   );
 };
 
@@ -151,5 +158,6 @@ export const point = {
   distance,
   normalizePoint,
   add,
+  multiply,
   normalize
 };

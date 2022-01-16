@@ -154,7 +154,12 @@ export const fileToShape = (
     for (const elementIndex in specialElements) {
       console.log("Special Element", elementIndex);
 
-      const { coordinate, name, rotation: rotationMatrix } = specialElements[elementIndex];
+      const {
+        coordinate,
+        name,
+        rotation: rotationMatrix,
+        ...options
+      } = specialElements[elementIndex];
 
       if (!lego.elements.special.devices[name]) {
         continue;
@@ -168,7 +173,9 @@ export const fileToShape = (
 
       const transformedNewPoint = transformation.point.toReal(coordinate);
 
-      devices.push(buildElement(transformedNewPoint, rotation, "test_sensor_" + elementIndex));
+      devices.push(
+        buildElement(transformedNewPoint, rotation, "test_sensor_" + elementIndex, options)
+      );
     }
   }
 

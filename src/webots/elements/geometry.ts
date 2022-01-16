@@ -1,3 +1,4 @@
+import { Point } from "../../parsers/types";
 import { IndexedFaceSetObjectType } from "../types";
 
 const createCoordString = ({
@@ -47,7 +48,14 @@ const cylinder = (height: number, radius: number) => {
   }`;
 };
 
+const box = ({ x, y, z }: Point) => `
+  Box {
+    size ${x} ${y} ${z}
+  }
+`;
+
 export const geometry = {
   indexedFaceSet,
-  cylinder
+  cylinder,
+  box
 };
