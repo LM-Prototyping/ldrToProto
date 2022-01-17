@@ -14,19 +14,21 @@ const transform = (newTrans: math.Matrix, rotationMatrix: math.Matrix): math.Mat
   multiply(newTrans, rotationMatrix);
 
 const ldrToWebots = (transformationMatrix: math.Matrix, coordinates: Point) => {
-  const basePoint = { x: 1, y: 0, z: 0 };
+  const basePoint = {
+    x: 0,
+    y: -45,
+    z: -80
+  };
   const fromPoint = transformation.point.transform(basePoint, coordinates, transformationMatrix);
   const toPoint = transformation.point.transform(
-    { ...basePoint, z: basePoint.z - 1 },
+    { ...basePoint, y: basePoint.y - 1 },
     coordinates,
     transformationMatrix
   );
 
-  const rotationMatrix = rotation(basePoint, {
-    x: toPoint.x - fromPoint.x,
-    y: fromPoint.y - toPoint.y,
-    z: fromPoint.z - toPoint.z
-  });
+  console.log(fromPoint, toPoint);
+
+  const rotationMatrix = rotation(fromPoint, toPoint);
 
   return rotationMatrix;
 };

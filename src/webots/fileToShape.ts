@@ -159,73 +159,34 @@ export const fileToShape = (
         coordinate,
         name,
         rotation: rotationMatrix,
+        direction,
         ...options
       } = specialElements[elementIndex];
 
-      if (!lego.elements.special.devices[name]) {
+      if (!lego.elements.special.devices[name] || !direction) {
         continue;
       }
 
       const { buildElement } = lego.elements.special.devices[name] as DeviceInfo;
 
-      const realMatrix = transformation.matrix.ldrToWebots(rotationMatrix, coordinate);
-
-      // console.log(rotationMatrix, realMatrix);
-      // const realMatrix = transformation.matrix.transform(
-      //   // transformation.matrix.transform(
-      //   //   matrix([
-      //   //     // Transform X
-      //   //     [1, 0, 0],
-      //   //     [0, 0, 1],
-      //   //     [0, -1, 0]
-      //   //   ]),
-      //   //   transformation.matrix.transform(
-      //   //     matrix([
-      //   //       // Transform Y
-      //   //       [0, 0, 1],
-      //   //       [0, 1, 0],
-      //   //       [-1, 0, 0]
-      //   //     ]),
-      //   // transformation.matrix.transform(
-      //   //   matrix([
-      //   //     [-1, 0, 0],
-      //   //     [0, 1, 0],
-      //   //     [0, 0, -1]
-      //   //   ]),
-      //   //   transformation.matrix.transform(
-      //   //     matrix([
-      //   //       [1, 0, 0],
-      //   //       [0, 0, -1],
-      //   //       [0, 1, 0]
-      //   //     ]),
-      //   matrix([
-      //     // Transform X
-      //     [0, 1, 0],
-      //     [-1, 0, 0],
-      //     [0, 0, 1]
-      //   ]),
-      //   rotationMatrix
-      //   //   )
-      //   // )
-      //   // )
-      //   // )
-      // );
-
-      // console.log(rotationMatrix, realMatrix);
-
-      let rotation = rotationMatrixToAngleAxis(rotationMatrix, coordinate);
-      console.log(
-        rotationMatrix,
-        realMatrix,
-        rotationMatrixToAngleAxis(rotationMatrix, coordinate),
-        rotation
-      );
+      // const rot = transformation.matrix.ldrToWebots(rotationMatrix, coordinate);
 
       const transformedNewPoint = transformation.point.toReal(coordinate);
+      const transformedDir = transformation.point.toReal(direction);
+
+      const rot = transformation.matrix.rotation(
+        { x: 1, y: 0, z: 0 },
+        transformation.point.subtract(transformedNewPoint, transformedDir)
+      );
+      let rotation = rotationMatrixToAngleAxis(rot, coordinate);
 
       devices.push(
         buildElement(transformedNewPoint, rotation, "test_sensor_" + elementIndex, options)
       );
+
+      // devices.push(
+      //   buildElement(transformedDir, rotation, "test_sensor_" + elementIndex + 100, options)
+      // );
     }
   }
 

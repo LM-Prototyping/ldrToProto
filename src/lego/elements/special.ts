@@ -92,6 +92,11 @@ const partsDeviceInfo: DeviceInfoDict = {
       y: -45,
       z: -80
     },
+    direction: {
+      x: 0,
+      y: 0,
+      z: -40
+    },
     buildElement: webots.devices.sensors.distance
   },
   touch_sensor: {
@@ -234,19 +239,30 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
 
         switch (type) {
           case "sensor": {
+            const { basePosition, direction } = lego.elements.special.devices[internalName];
+
+            if (!direction) {
+              continue;
+            }
+
             newGraph[name].specialElements.push({
               name: internalName,
               // transformation.matrix.transform(
-              rotation: transformation.matrix.transform(
-                matrix([
-                  [1, 0, 0],
-                  [0, 0, -1],
-                  [0, 1, 0]
-                ]),
-                transformation.matrix.ldrToWebots(transformationMatrix, coordinates)
-              ),
+              rotation: transformationMatrix, // transformation.matrix.transform(
+              //   matrix([
+              //     [1, 0, 0],
+              //     [0, 0, -1],
+              //     [0, 1, 0]
+              //   ]),
+              //   transformationMatrix
+              // ),
               coordinate: transformation.point.transform(
                 basePosition,
+                coordinates,
+                transformationMatrix
+              ),
+              direction: transformation.point.transform(
+                transformation.point.add(basePosition, direction),
                 coordinates,
                 transformationMatrix
               )
@@ -314,17 +330,38 @@ const transformArray = <T extends BaseElement[]>(
   for (const element of specialElements) {
     console.log("Apply matrix", transformationMatrix);
 
-    const { coordinate: oldCoordinate, rotation, ...rest } = element;
+    const {
+      coordinate: oldCoordinate,
+      direction: oldDirection,
+      rotation,
+      ...rest
+    } = element as SpecialElement;
 
-    const newRotationMatrix = transformation.matrix.transform(transformationMatrix, rotation);
+    const newRotationMatrix = transformation.matrix.transform(
+      rotation,
+      //transformationMatrix
+      transformationMatrix
+    );
     const test = transformation.matrix.transform(
       matrix([
-        [0, 0, 1],
+        [-1, 0, 0],
         [0, 1, 0],
-        [-1, 0, 0]
+        [0, 0, -1]
       ]),
       newRotationMatrix
     );
+    const test2 = transformation.matrix.transform(
+      test,
+      matrix([
+        [1, 0, 0],
+        [0, 0, -1],
+        [0, 1, 0]
+      ])
+    );
+
+    if (!oldDirection) {
+      continue;
+    }
 
     console.log("Result", rotation, newRotationMatrix);
 
@@ -332,6 +369,7 @@ const transformArray = <T extends BaseElement[]>(
     newSpecialElements.push({
       ...rest,
       rotation: newRotationMatrix,
+      direction: transformation.point.transform(oldDirection, coordinates, transformationMatrix),
       coordinate: transformation.point.transform(oldCoordinate, coordinates, transformationMatrix)
     });
   }

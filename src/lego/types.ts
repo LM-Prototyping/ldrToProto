@@ -13,6 +13,7 @@ export type PartTypeDict = Dict<PartType>;
 export interface BaseElement {
   rotation: math.Matrix;
   coordinate: Point;
+  direction?: Point;
 }
 export interface SpecialElement extends BaseElement {
   name: string;
@@ -42,6 +43,7 @@ export type FileNodeWithSpecialElementsDict = Dict<FileNodeWithSpecialElements>;
 
 export interface DeviceInfo {
   basePosition: Point;
+  direction?: Point;
   buildElement: (
     transformation: Point,
     rotation: Rotation,
