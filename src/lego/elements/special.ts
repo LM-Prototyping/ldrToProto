@@ -243,7 +243,7 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
                   [0, 0, -1],
                   [0, 1, 0]
                 ]),
-                transformationMatrix
+                transformation.matrix.ldrToWebots(transformationMatrix, coordinates)
               ),
               coordinate: transformation.point.transform(
                 basePosition,
@@ -281,8 +281,8 @@ export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
           rotation: transformation.matrix.transform(
             matrix([
               [1, 0, 0],
-              [0, 0, 1],
-              [0, -1, 0]
+              [0, 0, -1],
+              [0, 1, 0]
             ]),
             transformationMatrix
           ),
@@ -312,9 +312,21 @@ const transformArray = <T extends BaseElement[]>(
   const newSpecialElements = [] as unknown as T;
 
   for (const element of specialElements) {
+    console.log("Apply matrix", transformationMatrix);
+
     const { coordinate: oldCoordinate, rotation, ...rest } = element;
 
     const newRotationMatrix = transformation.matrix.transform(transformationMatrix, rotation);
+    const test = transformation.matrix.transform(
+      matrix([
+        [0, 0, 1],
+        [0, 1, 0],
+        [-1, 0, 0]
+      ]),
+      newRotationMatrix
+    );
+
+    console.log("Result", rotation, newRotationMatrix);
 
     // newSpecialElements.push({ name, line: newLine });
     newSpecialElements.push({

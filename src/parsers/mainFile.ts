@@ -5,11 +5,81 @@ import {
 } from "./dependencyGraph";
 import { getLineData } from "./utils";
 import { applyColorToLines } from "../colors";
-import { HingeJointElement, LineType1Data, ProcessedFilesDict } from "./types";
+import { HingeJointElement, LineType1Data, Point, ProcessedFilesDict } from "./types";
 import { transformation } from "../transformation";
 import { lego } from "../lego";
 import { parseDatFile } from "./dat";
 import { ConnectionElement, WheelElement } from "../lego/types";
+import math from "mathjs";
+
+let motorIndex = 0;
+
+const transformHingeJoints = (
+  hingeJoints: HingeJointElement[] | undefined,
+  coordinates: Point,
+  transformationMatrix: math.Matrix
+): HingeJointElement[] => {
+  if (!hingeJoints || hingeJoints.length === 0) {
+    return [];
+  }
+
+  return hingeJoints.map(
+    ({
+      hingeJoints: internalHingeJoints,
+      connections,
+      specialElements,
+      wheels,
+      modelLines,
+      elementInfo,
+      ...rest
+    }) => {
+      const transformedConnections = lego.elements.special.transformArray<ConnectionElement[]>(
+        connections,
+        coordinates,
+        transformationMatrix
+      );
+
+      // zuerst die ganze datei transformieren
+      const transformedSubFile = transformation.file.transform(modelLines, {
+        transformationMatrix,
+        coordinates,
+        color: "16",
+        fileName: ""
+      });
+
+      const transformedSpecialElements = lego.elements.special.transformArray(
+        specialElements,
+        coordinates,
+        transformationMatrix
+      );
+
+      const transformedWheels = lego.elements.special.transformArray<WheelElement[]>(
+        wheels,
+        coordinates,
+        transformationMatrix
+      );
+
+      console.log(wheels[0].rotation, transformedWheels[0].rotation, transformationMatrix);
+
+      return {
+        ...rest,
+        hingeJoints: transformHingeJoints(internalHingeJoints, coordinates, transformationMatrix),
+        modelLines: transformedSubFile,
+        wheels: transformedWheels,
+        specialElements: transformedSpecialElements,
+        connections: transformedConnections,
+        elementInfo: {
+          coordinate: transformation.point.transform(
+            elementInfo.coordinate,
+            coordinates,
+            transformationMatrix
+          ),
+          rotation: transformation.matrix.transform(transformationMatrix, elementInfo.rotation)
+        }
+      };
+    }
+  );
+};
 
 /*
  * Parse main file. In the main .ldr file only other files ar included and groups are created.
@@ -159,7 +229,8 @@ const parseMainFile = (fileContent: string) => {
         modelLines: subModelLines,
         specialElements,
         connections,
-        wheels
+        wheels,
+        hingeJoints: inlineHingeJoints
       } = processedFiles[fileName];
 
       const transformedConnections = lego.elements.special.transformArray<ConnectionElement[]>(
@@ -205,6 +276,10 @@ const parseMainFile = (fileContent: string) => {
           const { rotation } = cMain;
           const distance = transformation.point.distance(mainCoordinate, childCoordinate);
 
+          if (distance > 5) {
+            break;
+          }
+
           console.log(
             "Detected HingeJoint:",
             name,
@@ -215,13 +290,22 @@ const parseMainFile = (fileContent: string) => {
             transformation.point.transform(childCoordinate, mainCoordinate, transformationMatrix)
           );
 
-          if (distance > 5) {
-            break;
-          }
-
           // Wenn die Distanz klein genug ist wird das Element als HingeJoint von dem Parent
           // gespeichert
           isJointElement = true;
+
+          const transformedHingeJoints = transformHingeJoints(
+            inlineHingeJoints,
+            coordinates,
+            transformationMatrix
+          );
+
+          let motorName: boolean | string = false;
+
+          if (isParentMotor || isChildMotor) {
+            motorName = (name + "_" + fileName).replace(/(\s+|\.ldr)/g, "") + "_" + motorIndex;
+            motorIndex += 1;
+          }
 
           hingeJoints.push({
             ...processedFiles[fileName],
@@ -232,8 +316,9 @@ const parseMainFile = (fileContent: string) => {
               coordinate: mainCoordinate,
               rotation: rotation
             },
-            isMotor:
-              (isParentMotor || isChildMotor) && (name + "_" + fileName).replace(/(\s+|\.ldr)/g, "")
+            hingeJoints: transformedHingeJoints,
+            connections: transformedConnections,
+            isMotor: motorName
           });
         }
         // console.log(el);
@@ -268,7 +353,7 @@ const parseMainFile = (fileContent: string) => {
     processedFiles[name] = model;
   }
 
-  console.log(processedFiles);
+  // console.log(processedFiles);
 
   // Jetzt muss nur noch die Main File zu einem Webots object geparsed werden.
   const mainFile = processedFiles[processedFilesOrder[processedFilesOrder.length - 1]];

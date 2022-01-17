@@ -1,3 +1,4 @@
+import { matrix } from "mathjs";
 import { webots } from ".";
 import { lego } from "../lego";
 import { DeviceInfo, SpecialElement, WheelElement } from "../lego/types";
@@ -169,7 +170,56 @@ export const fileToShape = (
 
       const realMatrix = transformation.matrix.ldrToWebots(rotationMatrix, coordinate);
 
-      let rotation = rotationMatrixToAngleAxis(realMatrix, coordinate);
+      // console.log(rotationMatrix, realMatrix);
+      // const realMatrix = transformation.matrix.transform(
+      //   // transformation.matrix.transform(
+      //   //   matrix([
+      //   //     // Transform X
+      //   //     [1, 0, 0],
+      //   //     [0, 0, 1],
+      //   //     [0, -1, 0]
+      //   //   ]),
+      //   //   transformation.matrix.transform(
+      //   //     matrix([
+      //   //       // Transform Y
+      //   //       [0, 0, 1],
+      //   //       [0, 1, 0],
+      //   //       [-1, 0, 0]
+      //   //     ]),
+      //   // transformation.matrix.transform(
+      //   //   matrix([
+      //   //     [-1, 0, 0],
+      //   //     [0, 1, 0],
+      //   //     [0, 0, -1]
+      //   //   ]),
+      //   //   transformation.matrix.transform(
+      //   //     matrix([
+      //   //       [1, 0, 0],
+      //   //       [0, 0, -1],
+      //   //       [0, 1, 0]
+      //   //     ]),
+      //   matrix([
+      //     // Transform X
+      //     [0, 1, 0],
+      //     [-1, 0, 0],
+      //     [0, 0, 1]
+      //   ]),
+      //   rotationMatrix
+      //   //   )
+      //   // )
+      //   // )
+      //   // )
+      // );
+
+      // console.log(rotationMatrix, realMatrix);
+
+      let rotation = rotationMatrixToAngleAxis(rotationMatrix, coordinate);
+      console.log(
+        rotationMatrix,
+        realMatrix,
+        rotationMatrixToAngleAxis(rotationMatrix, coordinate),
+        rotation
+      );
 
       const transformedNewPoint = transformation.point.toReal(coordinate);
 

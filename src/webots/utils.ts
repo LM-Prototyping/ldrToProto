@@ -40,7 +40,7 @@ export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => 
   const p = { x: 0, y: 0, z: 0 };
 
   if (angle === 0) {
-    return { x: 0, y: 1, z: 0, angle: 0 };
+    return { x: 1, y: 0, z: 0, angle: 0 };
   } else if (angle.toFixed(6) === pi.toFixed(6)) {
     if (A[0][0] > A[1][1] && A[0][0] > A[2][2]) {
       p.x = sqrt(A[0][0] - A[1][1] - A[2][2] + 1) / 2;
@@ -52,8 +52,14 @@ export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => 
       p.z = A[1][2] / (2 * p.y);
     } else {
       p.z = sqrt(A[2][2] - A[0][0] - A[1][1] + 1) / 2;
-      p.x = A[0][2] / (2 * p.z);
-      p.y = A[1][2] / (2 * p.z);
+
+      if (p.z === 0) {
+        p.y = 1;
+        p.x = -1;
+      } else {
+        p.x = A[0][2] / (2 * p.z);
+        p.y = A[1][2] / (2 * p.z);
+      }
     }
   } else {
     p.x = A[2][1] - A[1][2];
