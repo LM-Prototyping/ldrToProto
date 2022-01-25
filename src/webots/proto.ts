@@ -1,11 +1,12 @@
-import { ProcessedFile } from "../parsers/types";
+import { FileElement } from "../parsers/dependencyGraph/types";
+// import { ProcessedFile } from "../parsers/types";
 import { fileToShape } from "./fileToShape";
 
 const createFromFile = (
-  { modelLines, specialElements, hingeJoints, wheels }: ProcessedFile,
+  { modelLines, sensors, hingeJoints, wheels }: FileElement,
   protoName: string
 ) => {
-  const indexedFaceSet = fileToShape(modelLines, specialElements, hingeJoints, wheels);
+  const indexedFaceSet = fileToShape(modelLines, sensors, hingeJoints, wheels);
 
   const proto = `
     PROTO ${protoName} [

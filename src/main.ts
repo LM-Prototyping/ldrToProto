@@ -1,11 +1,9 @@
 import { ArgumentParser } from "argparse";
 import fs from "fs";
 
-import { matrix } from "mathjs";
-
-import { Constants } from "./constants";
-import { colors } from "./colors";
-import parseMainFile from "./parsers/mainFile";
+import { parseLdrFile } from "./parsers/ldr";
+import { reduceFileElements } from "./parsers/reduceFileElements";
+import { getFileElements } from "./parsers/dependencyGraph";
 import { webots } from "./webots";
 
 const parseArguments = () => {
@@ -23,6 +21,11 @@ const parseArguments = () => {
     help: "Path to the webots directory (Not proto directory!)",
     required: true
   });
+  parser.add_argument("-r", "--createRobot", {
+    help: "Wether or not a roboter node should be created, if false a solid node will be created",
+    required: false,
+    default: true
+  });
 
   return parser.parse_args();
 };
@@ -36,13 +39,21 @@ const readFile = (filePath: string) => {
 const main = () => {
   // read main file to start parsing
 
-  const { file, protoName, webotsPath } = parseArguments();
+  const { file, protoName, webotsPath, createRobot } = parseArguments();
 
-  const fileContent = readFile(file);
+  const shouldCreateRobot = createRobot === "true";
 
-  const processedFile = parseMainFile(fileContent);
+  console.log(file, protoName, webotsPath, createRobot);
 
-  const protoString = webots.proto.createFromFile(processedFile, protoName);
+  const fileContent = fs.readFileSync(file, "utf8");
+
+  const filesAsString = parseLdrFile(fileContent);
+
+  const { order, fileElements } = getFileElements(filesAsString);
+
+  const mainFile = reduceFileElements(order, fileElements);
+
+  const protoString = webots.proto.createFromFile(mainFile, protoName);
 
   fs.writeFileSync(webotsPath + "/protos/" + protoName + ".proto", protoString);
 };

@@ -1,19 +1,13 @@
 import math, { matrix } from "mathjs";
 import { lego } from "..";
-import { FileNodeDict, LineType1Data, Point } from "../../parsers/types";
+import { LineType1Data, Point } from "../../parsers/types";
 import { getLineData } from "../../parsers/utils";
 import { transformation } from "../../transformation";
+import { LegoElement, Sensor } from "../../types";
 import { webots } from "../../webots";
 import { Rotation } from "../../webots/types";
-import {
-  BaseElement,
-  ConnectionElement,
-  DeviceInfoDict,
-  FileNodeWithSpecialElementsDict,
-  PartTypeDict,
-  SpecialElement,
-  WheelElement
-} from "../types";
+import { DeviceInfoDict, PartTypeDict } from "../types";
+
 import { wheels } from "./wheels";
 
 export const specialParts: PartTypeDict = {
@@ -98,220 +92,220 @@ const partsDeviceInfo: DeviceInfoDict = {
       z: -40
     },
     buildElement: webots.devices.sensors.distance
-  },
-  touch_sensor: {
-    basePosition: {
-      x: 0,
-      y: -40,
-      z: -90
-    },
-    buildElement: webots.devices.sensors.touch
-  },
-  compass_sensor: {
-    basePosition: {
-      x: 0,
-      y: -40,
-      z: -90
-    },
-    buildElement: webots.devices.sensors.compass
-  },
-  technic_pin: {
-    basePosition: {
-      x: 1,
-      y: 0,
-      z: 0
-    },
-    buildElement: (transform: Point, rotation: Rotation, name: string) => ""
   }
+  // touch_sensor: {
+  //   basePosition: {
+  //     x: 0,
+  //     y: -40,
+  //     z: -90
+  //   },
+  //   buildElement: webots.devices.sensors.touch
+  // },
+  // compass_sensor: {
+  //   basePosition: {
+  //     x: 0,
+  //     y: -40,
+  //     z: -90
+  //   },
+  //   buildElement: webots.devices.sensors.compass
+  // },
+  // technic_pin: {
+  //   basePosition: {
+  //     x: 1,
+  //     y: 0,
+  //     z: 0
+  //   },
+  //   buildElement: (transform: Point, rotation: Rotation, name: string) => ""
+  // }
 };
 
-export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
-  const newGraph = {} as FileNodeWithSpecialElementsDict;
+// export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
+//   const newGraph = {} as FileNodeWithSpecialElementsDict;
 
-  for (const node of Object.values(dependencyGraph)) {
-    const { name, file } = node;
+//   for (const node of Object.values(dependencyGraph)) {
+//     const { name, file } = node;
 
-    newGraph[name] = {
-      ...node,
-      specialElements: [] as SpecialElement[],
-      connections: [] as ConnectionElement[],
-      wheels: [] as WheelElement[]
-    };
+//     newGraph[name] = {
+//       ...node,
+//       specialElements: [] as SpecialElement[],
+//       connections: [] as ConnectionElement[],
+//       wheels: [] as WheelElement[]
+//     };
 
-    for (const line of file.split("\n")) {
-      const lineMatch = line.match(
-        /^1\s+(#[A-Fa-f\d]{6}|\d+)\s+(-?\d*.?\d*\s+){12}(?<fileName>[\w\d#-_\//]*)\./
-      );
+//     for (const line of file.split("\n")) {
+//       const lineMatch = line.match(
+//         /^1\s+(#[A-Fa-f\d]{6}|\d+)\s+(-?\d*.?\d*\s+){12}(?<fileName>[\w\d#-_\//]*)\./
+//       );
 
-      if (!lineMatch || !lineMatch.groups) {
-        continue;
-      }
+//       if (!lineMatch || !lineMatch.groups) {
+//         continue;
+//       }
 
-      const { fileName } = lineMatch.groups;
+//       const { fileName } = lineMatch.groups;
 
-      const { transformationMatrix, coordinates, color } = getLineData(line) as LineType1Data;
+//       const { transformationMatrix, coordinates, color } = getLineData(line) as LineType1Data;
 
-      if (specialParts[fileName]) {
-        const { name: specialElementName, type, internalName } = specialParts[fileName];
+//       if (specialParts[fileName]) {
+//         const { name: specialElementName, type, internalName } = specialParts[fileName];
 
-        console.log(
-          "Found special element: ",
-          specialElementName,
-          "of type: ",
-          type,
-          "in submodel",
-          name
-        );
-        const { basePosition } = lego.elements.special.devices[internalName];
+//         console.log(
+//           "Found special element: ",
+//           specialElementName,
+//           "of type: ",
+//           type,
+//           "in submodel",
+//           name
+//         );
+//         const { basePosition } = lego.elements.special.devices[internalName];
 
-        if (internalName === specialParts[53793].internalName) {
-          // Touch sensor
+//         if (internalName === specialParts[53793].internalName) {
+//           // Touch sensor
 
-          // Search for all green connectors
-          const connectors = [];
-          let rotationMatrix = transformationMatrix;
-          for (const line of file.split("\n")) {
-            const lineMatch = line.match(
-              /^1\s+(#[A-Fa-f\d]{6}|\d+)\s+(-?\d*.?\d*\s+){12}(?<fileName>[\w\d#-_\//]*)\./
-            );
+//           // Search for all green connectors
+//           const connectors = [];
+//           let rotationMatrix = transformationMatrix;
+//           for (const line of file.split("\n")) {
+//             const lineMatch = line.match(
+//               /^1\s+(#[A-Fa-f\d]{6}|\d+)\s+(-?\d*.?\d*\s+){12}(?<fileName>[\w\d#-_\//]*)\./
+//             );
 
-            if (!lineMatch || !lineMatch.groups) {
-              continue;
-            }
+//             if (!lineMatch || !lineMatch.groups) {
+//               continue;
+//             }
 
-            const { fileName } = lineMatch.groups;
+//             const { fileName } = lineMatch.groups;
 
-            if (!specialParts[fileName] || specialParts[fileName].internalName !== "technic_pin") {
-              continue;
-            }
+//             if (!specialParts[fileName] || specialParts[fileName].internalName !== "technic_pin") {
+//               continue;
+//             }
 
-            const {
-              transformationMatrix: tM,
-              coordinates,
-              color
-            } = getLineData(line) as LineType1Data;
+//             const {
+//               transformationMatrix: tM,
+//               coordinates,
+//               color
+//             } = getLineData(line) as LineType1Data;
 
-            // Color must be green for touch sensor
-            if (color !== "2") {
-              continue;
-            }
+//             // Color must be green for touch sensor
+//             if (color !== "2") {
+//               continue;
+//             }
 
-            connectors.push(coordinates);
-            rotationMatrix = tM;
-          }
+//             connectors.push(coordinates);
+//             rotationMatrix = tM;
+//           }
 
-          if (connectors.length != 4) {
-            console.log("Specifying bounding object for touch sensor only works with 4 pins");
-            continue;
-          }
+//           if (connectors.length != 4) {
+//             console.log("Specifying bounding object for touch sensor only works with 4 pins");
+//             continue;
+//           }
 
-          // Connectors müssen immer in einer oberen ecke starten und dann die andere obere ecke nehmen
-          const sizeX = transformation.point.distance(connectors[0], connectors[1]);
-          const sizeZ = transformation.point.distance(connectors[0], connectors[3]);
+//           // Connectors müssen immer in einer oberen ecke starten und dann die andere obere ecke nehmen
+//           const sizeX = transformation.point.distance(connectors[0], connectors[1]);
+//           const sizeZ = transformation.point.distance(connectors[0], connectors[3]);
 
-          const center = transformation.point.subtract(
-            coordinates,
-            transformation.point.add(
-              connectors[2],
-              transformation.point.multiply(
-                transformation.point.subtract(connectors[2], connectors[0]),
-                0.5
-              )
-            )
-          );
+//           const center = transformation.point.subtract(
+//             coordinates,
+//             transformation.point.add(
+//               connectors[2],
+//               transformation.point.multiply(
+//                 transformation.point.subtract(connectors[2], connectors[0]),
+//                 0.5
+//               )
+//             )
+//           );
 
-          newGraph[name].specialElements.push({
-            name: internalName,
-            rotation: transformation.matrix.transform(
-              matrix([
-                [1, 0, 0],
-                [0, 0, -1],
-                [0, 1, 0]
-              ]),
-              rotationMatrix
-            ),
-            coordinate: transformation.point.transform(center, coordinates, transformationMatrix),
-            distance: { x: sizeX, z: sizeZ, y: 20 }
-          });
+//           newGraph[name].specialElements.push({
+//             name: internalName,
+//             rotation: transformation.matrix.transform(
+//               matrix([
+//                 [1, 0, 0],
+//                 [0, 0, -1],
+//                 [0, 1, 0]
+//               ]),
+//               rotationMatrix
+//             ),
+//             coordinate: transformation.point.transform(center, coordinates, transformationMatrix),
+//             distance: { x: sizeX, z: sizeZ, y: 20 }
+//           });
 
-          continue;
-        }
+//           continue;
+//         }
 
-        switch (type) {
-          case "sensor": {
-            const { basePosition, direction } = lego.elements.special.devices[internalName];
+//         switch (type) {
+//           case "sensor": {
+//             const { basePosition, direction } = lego.elements.special.devices[internalName];
 
-            if (!direction) {
-              continue;
-            }
+//             if (!direction) {
+//               continue;
+//             }
 
-            newGraph[name].specialElements.push({
-              name: internalName,
-              // transformation.matrix.transform(
-              rotation: transformationMatrix, // transformation.matrix.transform(
-              //   matrix([
-              //     [1, 0, 0],
-              //     [0, 0, -1],
-              //     [0, 1, 0]
-              //   ]),
-              //   transformationMatrix
-              // ),
-              coordinate: transformation.point.transform(
-                basePosition,
-                coordinates,
-                transformationMatrix
-              ),
-              direction: transformation.point.transform(
-                transformation.point.add(basePosition, direction),
-                coordinates,
-                transformationMatrix
-              )
-            });
-            break;
-          }
-          case "connection": {
-            newGraph[name].connections.push({
-              rotation: transformation.matrix.transform(
-                matrix([
-                  [1, 0, 0],
-                  [0, 0, -1],
-                  [0, 1, 0]
-                ]),
-                transformationMatrix
-              ),
-              coordinate: transformation.point.transform(
-                basePosition,
-                coordinates,
-                transformationMatrix
-              ),
-              isMotor: color === "4"
-            });
-          }
-        }
-      }
+//             newGraph[name].specialElements.push({
+//               name: internalName,
+//               // transformation.matrix.transform(
+//               rotation: transformationMatrix, // transformation.matrix.transform(
+//               //   matrix([
+//               //     [1, 0, 0],
+//               //     [0, 0, -1],
+//               //     [0, 1, 0]
+//               //   ]),
+//               //   transformationMatrix
+//               // ),
+//               coordinate: transformation.point.transform(
+//                 basePosition,
+//                 coordinates,
+//                 transformationMatrix
+//               ),
+//               direction: transformation.point.transform(
+//                 transformation.point.add(basePosition, direction),
+//                 coordinates,
+//                 transformationMatrix
+//               )
+//             });
+//             break;
+//           }
+//           case "connection": {
+//             newGraph[name].connections.push({
+//               rotation: transformation.matrix.transform(
+//                 matrix([
+//                   [1, 0, 0],
+//                   [0, 0, -1],
+//                   [0, 1, 0]
+//                 ]),
+//                 transformationMatrix
+//               ),
+//               coordinate: transformation.point.transform(
+//                 basePosition,
+//                 coordinates,
+//                 transformationMatrix
+//               ),
+//               isMotor: color === "4"
+//             });
+//           }
+//         }
+//       }
 
-      if (wheels[fileName]) {
-        const { height, radius, coordinate } = wheels[fileName];
+//       if (wheels[fileName]) {
+//         const { height, radius, coordinate } = wheels[fileName];
 
-        newGraph[name].wheels.push({
-          rotation: transformation.matrix.transform(
-            matrix([
-              [1, 0, 0],
-              [0, 0, -1],
-              [0, 1, 0]
-            ]),
-            transformationMatrix
-          ),
-          coordinate: transformation.point.transform(coordinate, coordinates, transformationMatrix),
-          height,
-          radius
-        });
-      }
-    }
-  }
+//         newGraph[name].wheels.push({
+//           rotation: transformation.matrix.transform(
+//             matrix([
+//               [1, 0, 0],
+//               [0, 0, -1],
+//               [0, 1, 0]
+//             ]),
+//             transformationMatrix
+//           ),
+//           coordinate: transformation.point.transform(coordinate, coordinates, transformationMatrix),
+//           height,
+//           radius
+//         });
+//       }
+//     }
+//   }
 
-  return newGraph;
-};
+//   return newGraph;
+// };
 
 const transformBasePosition = (lines: string[], basePosition: Point) =>
   lines.reduce((all, curr) => {
@@ -320,7 +314,7 @@ const transformBasePosition = (lines: string[], basePosition: Point) =>
     return transformation.point.transform(all, coordinates, transformationMatrix);
   }, basePosition);
 
-const transformArray = <T extends BaseElement[]>(
+const transformArray = <T extends LegoElement[]>(
   specialElements: T,
   coordinates: Point,
   transformationMatrix: math.Matrix
@@ -333,42 +327,42 @@ const transformArray = <T extends BaseElement[]>(
     const {
       coordinate: oldCoordinate,
       direction: oldDirection,
-      rotation,
+      // rotation,
       ...rest
-    } = element as SpecialElement;
+    } = element as Sensor;
 
-    const newRotationMatrix = transformation.matrix.transform(
-      rotation,
-      //transformationMatrix
-      transformationMatrix
-    );
-    const test = transformation.matrix.transform(
-      matrix([
-        [-1, 0, 0],
-        [0, 1, 0],
-        [0, 0, -1]
-      ]),
-      newRotationMatrix
-    );
-    const test2 = transformation.matrix.transform(
-      test,
-      matrix([
-        [1, 0, 0],
-        [0, 0, -1],
-        [0, 1, 0]
-      ])
-    );
+    // const newRotationMatrix = transformation.matrix.transform(
+    //   rotation,
+    //   //transformationMatrix
+    //   transformationMatrix
+    // );
+    // const test = transformation.matrix.transform(
+    //   matrix([
+    //     [-1, 0, 0],
+    //     [0, 1, 0],
+    //     [0, 0, -1]
+    //   ]),
+    //   newRotationMatrix
+    // );
+    // const test2 = transformation.matrix.transform(
+    //   test,
+    //   matrix([
+    //     [1, 0, 0],
+    //     [0, 0, -1],
+    //     [0, 1, 0]
+    //   ])
+    // );
 
     if (!oldDirection) {
       continue;
     }
 
-    console.log("Result", rotation, newRotationMatrix);
+    // console.log("Result", rotation, newRotationMatrix);
 
     // newSpecialElements.push({ name, line: newLine });
     newSpecialElements.push({
       ...rest,
-      rotation: newRotationMatrix,
+      // rotation: newRotationMatrix,
       direction: transformation.point.transform(oldDirection, coordinates, transformationMatrix),
       coordinate: transformation.point.transform(oldCoordinate, coordinates, transformationMatrix)
     });
@@ -380,7 +374,7 @@ const transformArray = <T extends BaseElement[]>(
 export const special = {
   ...specialParts,
   devices: partsDeviceInfo,
-  extractFromDependecyGraph,
+  // extractFromDependecyGraph,
   transformArray,
   transformBasePosition
 };
