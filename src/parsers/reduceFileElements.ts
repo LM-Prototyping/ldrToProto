@@ -1,19 +1,25 @@
 import { lego } from "../lego";
 import { transformation } from "../transformation";
-import { Connection } from "../types";
-import { FileElementDict } from "./dependencyGraph/types";
+import { Connection, Wheel } from "../types";
+import { FileElementDict, HingeJoint } from "./dependencyGraph/types";
 import { LineType1Data } from "./types";
-import { getLineData } from "./utils";
+import { getLineData, transformHingeJoints } from "./utils";
+
+let motorIndex = 0;
 
 export const reduceFileElements = (order: string[], files: FileElementDict) => {
   for (const name of order) {
     // Hier Untermodelle Button up einfügen und ggf Transformationen durchführen
+
+    console.log("Processing file", name);
 
     const model = files[name];
 
     if (!model) {
       continue;
     }
+
+    // console.log(model);
 
     const {
       modelLines,
@@ -23,9 +29,11 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
     } = model;
     const newLines = [];
     const newSpecialElements = [...allSpecialElements];
-    // const newConnections = [...allConnections];
-    // const hingeJoints = [] as HingeJointElement[];
-    // const newWheels = [...allWheels] as Wheel[];
+    const newConnections = [...allConnections];
+    const hingeJoints = [] as HingeJoint[];
+    const newWheels = [...allWheels] as Wheel[];
+
+    // console.log(allWheels);
 
     for (const line of modelLines) {
       const lineTypeMatch = line.match(/^1/);
@@ -74,78 +82,84 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
         transformationMatrix
       );
 
-      // const transformedWheels = lego.elements.special.transformArray<WheelElement[]>(
-      //   wheels,
-      //   coordinates,
-      //   transformationMatrix
-      // );
+      const transformedWheels = lego.elements.special.transformArray<Wheel[]>(
+        wheels,
+        coordinates,
+        transformationMatrix
+      );
+
+      console.log(wheels[0].rotation, transformedWheels[0].rotation);
+
+      // console.log(allConnections, connections);
 
       // Elements of subModell
       // Hier checken ob das Untermodell eine Connection mit dem Main modell teilt.
       // Wenn ja dann ist das Untermodell ein lose verbundenes Child des Main modells
       // und muss in den EndPoint eines HingeJoints um beweglich zu sein
       // Für alle Verbindungen des Main Modells
-      // for (const cMain of allConnections) {
-      //   // Für alle Verbindungen des Child Modells
-      //   const { coordinate: mainCoordinate, isMotor: isParentMotor } = cMain;
-      //   for (const cChild of transformedConnections) {
-      //     // Wenn die Distanz zwischen zwei Verbindungen sehr klein ist wird dies als Connection
-      //     // gezählt
-      //     const { coordinate: childCoordinate, isMotor: isChildMotor } = cChild;
-      //     const { rotation } = cMain;
-      //     const distance = transformation.point.distance(mainCoordinate, childCoordinate);
+      for (const cMain of allConnections) {
+        // Für alle Verbindungen des Child Modells
+        const { coordinate: mainCoordinate, isMotor: isParentMotor } = cMain;
+        for (const cChild of transformedConnections) {
+          // Wenn die Distanz zwischen zwei Verbindungen sehr klein ist wird dies als Connection
+          // gezählt
+          const { coordinate: childCoordinate, isMotor: isChildMotor } = cChild;
+          const { rotation } = cMain;
+          const distance = transformation.point.distance(mainCoordinate, childCoordinate);
 
-      //     if (distance > 5) {
-      //       break;
-      //     }
+          // console.log(mainCoordinate, childCoordinate);
 
-      //     console.log(
-      //       "Detected HingeJoint:",
-      //       name,
-      //       "->",
-      //       fileName,
-      //       mainCoordinate,
-      //       childCoordinate,
-      //       transformation.point.transform(childCoordinate, mainCoordinate, transformationMatrix)
-      //     );
+          if (distance > 5) {
+            break;
+          }
 
-      //     // Wenn die Distanz klein genug ist wird das Element als HingeJoint von dem Parent
-      //     // gespeichert
-      //     isJointElement = true;
+          console.log(
+            "Detected HingeJoint:",
+            name,
+            "->",
+            fileName,
+            mainCoordinate,
+            childCoordinate,
+            transformation.point.transform(childCoordinate, mainCoordinate, transformationMatrix)
+          );
 
-      //     const transformedHingeJoints = transformHingeJoints(
-      //       inlineHingeJoints,
-      //       coordinates,
-      //       transformationMatrix
-      //     );
+          // Wenn die Distanz klein genug ist wird das Element als HingeJoint von dem Parent
+          // gespeichert
+          isJointElement = true;
 
-      //     let motorName: boolean | string = false;
+          const transformedHingeJoints = transformHingeJoints(
+            inlineHingeJoints,
+            coordinates,
+            transformationMatrix
+          );
 
-      //     if (isParentMotor || isChildMotor) {
-      //       motorName = (name + "_" + fileName).replace(/(\s+|\.ldr)/g, "") + "_" + motorIndex;
-      //       motorIndex += 1;
-      //     }
+          let motorName: boolean | string = false;
 
-      //     hingeJoints.push({
-      //       ...files[fileName],
-      //       modelLines: transformedSubFile,
-      //       specialElements: transformedSensors,
-      //       wheels: transformedWheels,
-      //       elementInfo: {
-      //         coordinate: mainCoordinate,
-      //         rotation: rotation
-      //       },
-      //       hingeJoints: transformedHingeJoints,
-      //       connections: transformedConnections,
-      //       isMotor: motorName
-      //     });
-      //   }
-      //   // console.log(el);
-      // }
+          if (isParentMotor || isChildMotor) {
+            motorName = (name + "_" + fileName).replace(/(\s+|\.ldr)/g, "") + "_" + motorIndex;
+            motorIndex += 1;
+          }
 
-      // if (isJointElement) {
-      //   continue;
-      // }
+          hingeJoints.push({
+            ...files[fileName],
+            modelLines: transformedSubFile,
+            sensors: transformedSensors,
+            wheels: transformedWheels,
+            element: {
+              coordinate: childCoordinate,
+              rotation: rotation
+            },
+            hingeJoints: transformedHingeJoints,
+            connections: transformedConnections,
+            isMotor: motorName
+          });
+        }
+        // console.log(el);
+      }
+
+      if (isJointElement) {
+        continue;
+      }
 
       // Wenn hier eine Line mit type 1 gematcht wurde ist das aktuelle modell von
       // der gematchten File abhängig, diese wurde vorher im dependencyGraph also
@@ -160,14 +174,14 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
       // Die transformierten Lines an die neuen Lines anhängen
       newLines.push(...transformedSubFile);
       newSpecialElements.push(...transformedSensors);
-      // newConnections.push(...transformedConnections);
-      // newWheels.push(...transformedWheels);
+      newConnections.push(...transformedConnections);
+      newWheels.push(...transformedWheels);
     }
 
     model.modelLines = newLines;
     model.sensors = newSpecialElements;
-    // model.hingeJoints = hingeJoints;
-    // model.wheels = newWheels;
+    model.hingeJoints = hingeJoints;
+    model.wheels = newWheels;
 
     files[name] = model;
   }

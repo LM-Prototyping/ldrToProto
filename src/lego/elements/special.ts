@@ -92,7 +92,7 @@ const partsDeviceInfo: DeviceInfoDict = {
       z: -40
     },
     buildElement: webots.devices.sensors.distance
-  }
+  },
   // touch_sensor: {
   //   basePosition: {
   //     x: 0,
@@ -109,14 +109,19 @@ const partsDeviceInfo: DeviceInfoDict = {
   //   },
   //   buildElement: webots.devices.sensors.compass
   // },
-  // technic_pin: {
-  //   basePosition: {
-  //     x: 1,
-  //     y: 0,
-  //     z: 0
-  //   },
-  //   buildElement: (transform: Point, rotation: Rotation, name: string) => ""
-  // }
+  technic_pin: {
+    basePosition: {
+      x: 1,
+      y: 0,
+      z: 0
+    },
+    direction: {
+      x: 0,
+      y: 0,
+      z: 1
+    },
+    buildElement: (transform: Point, rotation: Rotation, name: string) => ""
+  }
 };
 
 // export const extractFromDependecyGraph = (dependencyGraph: FileNodeDict) => {
@@ -322,11 +327,12 @@ const transformArray = <T extends LegoElement[]>(
   const newSpecialElements = [] as unknown as T;
 
   for (const element of specialElements) {
-    console.log("Apply matrix", transformationMatrix);
+    // console.log("Apply matrix", transformationMatrix);
 
     const {
       coordinate: oldCoordinate,
       direction: oldDirection,
+      rotation: oldRotation,
       // rotation,
       ...rest
     } = element as Sensor;
@@ -353,17 +359,33 @@ const transformArray = <T extends LegoElement[]>(
     //   ])
     // );
 
-    if (!oldDirection) {
-      continue;
-    }
+    // if (!oldDirection) {
+    //   continue;
+    // }
 
     // console.log("Result", rotation, newRotationMatrix);
 
     // newSpecialElements.push({ name, line: newLine });
     newSpecialElements.push({
       ...rest,
-      // rotation: newRotationMatrix,
-      direction: transformation.point.transform(oldDirection, coordinates, transformationMatrix),
+      ...(oldRotation
+        ? {
+            rotation: transformation.matrix.transform(
+              oldRotation,
+              //transformationMatrix
+              transformationMatrix
+            )
+          }
+        : {}),
+      ...(oldDirection
+        ? {
+            direction: transformation.point.transform(
+              oldDirection,
+              coordinates,
+              transformationMatrix
+            )
+          }
+        : {}),
       coordinate: transformation.point.transform(oldCoordinate, coordinates, transformationMatrix)
     });
   }

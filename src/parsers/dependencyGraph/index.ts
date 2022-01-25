@@ -1,6 +1,8 @@
+import { matrix } from "mathjs";
 import { applyColorToLines } from "../../colors";
 import { lego } from "../../lego";
 import { specialParts } from "../../lego/elements/special";
+import { wheels } from "../../lego/elements/wheels";
 import { transformation } from "../../transformation";
 import { parseDatFile } from "../dat";
 import { LineType1Data } from "../types";
@@ -122,7 +124,7 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
           "in submodel",
           name
         );
-        const { basePosition } = lego.elements.special.devices[internalName];
+        const { basePosition, direction } = lego.elements.special.devices[internalName];
 
         // if (internalName === specialParts[53793].internalName) {
         //   // Touch sensor
@@ -229,44 +231,72 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
             });
             break;
           }
-          // case "connection": {
-          //   newGraph[name].connections.push({
-          //     rotation: transformation.matrix.transform(
-          //       matrix([
-          //         [1, 0, 0],
-          //         [0, 0, -1],
-          //         [0, 1, 0]
-          //       ]),
-          //       transformationMatrix
-          //     ),
-          //     coordinate: transformation.point.transform(
-          //       basePosition,
-          //       coordinates,
-          //       transformationMatrix
-          //     ),
-          //     isMotor: color === "4"
-          //   });
-          // }
+          case "connection": {
+            newGraph[name].connections.push({
+              rotation: transformation.matrix.transform(
+                matrix([
+                  [1, 0, 0],
+                  [0, 0, 1],
+                  [0, -1, 0]
+                ]),
+                transformationMatrix
+              ),
+              coordinate: transformation.point.transform(
+                basePosition,
+                coordinates,
+                transformationMatrix
+              ),
+              // direction: transformation.point.transform(
+              //   direction,
+              //   coordinates,
+              //   transformationMatrix
+              // ),
+              isMotor: color === "4"
+            });
+          }
         }
       }
 
-      // if (wheels[fileName]) {
-      //   const { height, radius, coordinate } = wheels[fileName];
+      if (wheels[fileName]) {
+        const { height, radius, coordinate } = wheels[fileName];
 
-      //   newGraph[name].wheels.push({
-      //     rotation: transformation.matrix.transform(
-      //       matrix([
-      //         [1, 0, 0],
-      //         [0, 0, -1],
-      //         [0, 1, 0]
-      //       ]),
-      //       transformationMatrix
-      //     ),
-      //     coordinate: transformation.point.transform(coordinate, coordinates, transformationMatrix),
-      //     height,
-      //     radius
-      //   });
-      // }
+        console.log(
+          "Wheel transformation",
+          transformation.matrix.transform(
+            matrix([
+              [1, 0, 0],
+              [0, 0, 1],
+              [0, -1, 0]
+            ]),
+            transformationMatrix
+          )
+        );
+
+        newGraph[name].wheels.push({
+          rotation: transformationMatrix,
+          //transformation.matrix.transform(
+          //   matrix([
+          //     [1, 0, 0],
+          //     [0, 0, 1],
+          //     [0, -1, 0]
+          //   ]),
+          //   transformationMatrix
+          // ),
+          // direction: transformation.point.transform(
+          //   transformation.point.add(basePosition, direction),
+          //   coordinates,
+          //   transformationMatrix
+          // ),
+          // direction: transformation.point.transform(
+          //   transformation.point.add(coordinate, { x: 0, y: 1, z: 0 }),
+          //   coordinates,
+          //   transformationMatrix
+          // ),
+          coordinate: transformation.point.transform(coordinate, coordinates, transformationMatrix),
+          height,
+          radius
+        });
+      }
     }
   }
 

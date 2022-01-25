@@ -56,7 +56,7 @@
 // export type DeviceInfoDict = Dict<DeviceInfo>;
 
 import { Point } from "../parsers/types";
-import { Dict, Wheel } from "../types";
+import { Dict, Wheel, WheelPart } from "../types";
 import { Rotation } from "../webots/types";
 
 export interface PartType {
@@ -84,7 +84,6 @@ export type PartTypeDict = Dict<PartType>;
 //   height: number;
 //   radius: number;
 // }
-export type WheelPartDict = Dict<Wheel>;
 // export type WheelElement = BaseElement & WheelPart;
 
 // export type SpecialElementDict = Dict<SpecialElement>;

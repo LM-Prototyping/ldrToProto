@@ -39,6 +39,8 @@ export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => 
 
   const p = { x: 0, y: 0, z: 0 };
 
+  // console.log(angle, A);
+
   if (angle === 0) {
     return { x: 1, y: 0, z: 0, angle: 0 };
   } else if (angle.toFixed(6) === pi.toFixed(6)) {
@@ -67,7 +69,7 @@ export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => 
     p.z = A[1][0] - A[0][1];
   }
 
-  console.log(A, p, angle);
+  // console.log(A, p, angle);
 
   return { ...p, angle };
 };

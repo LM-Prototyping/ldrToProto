@@ -51,6 +51,8 @@ const main = () => {
 
   const { order, fileElements } = getFileElements(filesAsString);
 
+  // console.log(fileElements);
+
   const mainFile = reduceFileElements(order, fileElements);
 
   const protoString = webots.proto.createFromFile(mainFile, protoName);

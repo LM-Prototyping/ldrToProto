@@ -160,7 +160,7 @@ export const fileToShape = (
       const {
         coordinate,
         name,
-        // rotation: rotationMatrix,
+        rotation: rotationMatrix,
         direction,
         ...options
       } = specialElements[elementIndex];
@@ -192,52 +192,83 @@ export const fileToShape = (
     }
   }
 
-  // const hingeJointsAsString = [] as string[];
-  // for (const hinge of hingeJoints) {
-  //   const { modelLines, specialElements, hingeJoints, elementInfo, wheels, isMotor } = hinge;
-  //   const endPoint = fileToShape(modelLines, specialElements, hingeJoints, wheels);
+  const hingeJointsAsString = [] as string[];
+  for (const hinge of hingeJoints) {
+    const { modelLines, sensors, hingeJoints, element, wheels, isMotor } = hinge;
+    const endPoint = fileToShape(modelLines, sensors, hingeJoints, wheels);
 
-  //   const { coordinate, rotation } = elementInfo;
-  //   // console.log(rotation, coordinate);
-  //   const rotatedAxis = transformation.point.transform({ x: 1, y: 0, z: 0 }, coordinate, rotation);
-  //   // console.log(rotatedAxis);
-  //   const hingeJoint = webots.elements.hingeJoint(
-  //     transformation.point.subtract(rotatedAxis, coordinate),
-  //     transformation.point.toReal(coordinate),
-  //     endPoint,
-  //     isMotor
-  //   );
-  //   hingeJointsAsString.push(hingeJoint);
-  // }
+    const { coordinate, rotation } = element;
+
+    if (!rotation) {
+      continue;
+    }
+
+    console.log("Adding Hinge Joint at", coordinate, transformation.point.toReal(coordinate));
+
+    // console.log(rotation, coordinate);
+    const rotatedAxis = transformation.point.transform({ x: 1, y: 0, z: 0 }, coordinate, rotation);
+    // console.log(rotatedAxis);
+    const hingeJoint = webots.elements.hingeJoint(
+      transformation.point.subtract(rotatedAxis, coordinate),
+      transformation.point.toReal(coordinate),
+      endPoint,
+      isMotor
+    );
+    hingeJointsAsString.push(hingeJoint);
+  }
 
   // // Ein Element kann immer nur ein einziges Bounding Object haben
-  // if (wheels.length > 1) {
-  //   console.log(
-  //     "Objekt hat mehr als ein Wheel. Wenn in einem Modell mehrere Wheels sind kann das BoundingObject nicht korrekt erstellt werden."
-  //   );
-  // }
-  // const wheelsAsString = [] as string[];
-  // for (const wheel of wheels) {
-  //   const { coordinate, rotation, height, radius } = wheel;
-  //   // console.log(rotation, coordinate);
-  //   const rotationString = rotationMatrixToAngleAxis(rotation, coordinate);
-  //   // console.log(rotationString);
+  if (wheels.length > 1) {
+    console.log(
+      "Objekt hat mehr als ein Wheel. Wenn in einem Modell mehrere Wheels sind kann das BoundingObject nicht korrekt erstellt werden."
+    );
+  }
+  const wheelsAsString = [] as string[];
+  for (const wheel of wheels) {
+    const { coordinate, rotation, height, radius } = wheel;
 
-  //   const element = webots.elements.transform(
-  //     transformation.point.toReal(coordinate),
-  //     rotationString,
-  //     webots.elements.geometry.cylinder(height * 0.01, radius * 0.01)
-  //   );
-  //   wheelsAsString.push(element);
+    if (!rotation) {
+      continue;
+    }
 
-  //   break;
-  // }
+    // console.log(rotation, coordinate);
+    const rotationString = rotationMatrixToAngleAxis(
+      transformation.matrix.transform(
+        transformation.matrix.transform(
+          rotation,
+          matrix([
+            [1, 0, 0],
+            [0, 0, 1],
+            [0, -1, 0]
+          ])
+        ),
+        matrix([
+          [0, 0, 1],
+          [0, 1, 0],
+          [-1, 0, 0]
+        ])
+      ),
+      coordinate
+    );
+    // console.log(rotationString);
+
+    console.log(rotation, "Rotation", rotationString);
+
+    const element = webots.elements.transform(
+      transformation.point.toReal(coordinate),
+      rotationString,
+      webots.elements.geometry.cylinder(height * 0.01, radius * 0.01)
+    );
+    wheelsAsString.push(element);
+
+    break;
+  }
 
   const solid = webots.elements.solid(
     null,
     null,
-    [faceSets.join("\n"), devices.join("\n")], // , hingeJointsAsString.join("\n")],
-    "" // wheelsAsString.join("\n")
+    [faceSets.join("\n"), devices.join("\n"), hingeJointsAsString.join("\n")],
+    wheelsAsString.join("\n")
   );
 
   // Jetzt HingeJoint Elemente erstellen

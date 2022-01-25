@@ -1,3 +1,4 @@
+import math from "mathjs";
 import { Point } from "./parsers/types";
 
 export interface Dict<T> {
@@ -9,7 +10,8 @@ export type _Iterable<T> = Record<string, T>;
 export interface LegoElement {
   // rotation:
   coordinate: Point;
-  direction: Point;
+  direction?: Point;
+  rotation?: math.Matrix;
 }
 
 export interface Sensor extends LegoElement {
@@ -24,11 +26,15 @@ export interface Connection extends LegoElement {
   isMotor: boolean;
 }
 
-export interface Wheel extends Omit<LegoElement, "direction"> {
+export interface WheelPart {
   coordinate: Point;
   height: number;
   radius: number;
 }
+
+export type Wheel = LegoElement & WheelPart;
+
+export type WheelPartDict = Dict<WheelPart>;
 
 export interface Color {
   code: string;

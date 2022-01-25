@@ -1,5 +1,8 @@
-import math, { matrix } from "mathjs";
+import math, { identity, matrix } from "mathjs";
+import { lego } from "../lego";
 import { transformation } from "../transformation";
+import { Connection, Wheel } from "../types";
+import { HingeJoint } from "./dependencyGraph/types";
 import { HandleLineTypeReturn, LineType, LineType1Data, Point } from "./types";
 
 const arrayToNumber = (arr: string[]) => arr.map((n) => Number(n));
@@ -154,3 +157,72 @@ export const line1ToString = (color: string, coord: Point, matrix: math.Matrix, 
   (matrix.toArray() as number[][]).map((row) => row.map((n) => "" + n).join(" ")).join(" ") +
   " " +
   fileName;
+
+export const transformHingeJoints = (
+  hingeJoints: HingeJoint[] | undefined,
+  coordinates: Point,
+  transformationMatrix: math.Matrix
+): HingeJoint[] => {
+  if (!hingeJoints || hingeJoints.length === 0) {
+    return [];
+  }
+
+  return hingeJoints.map(
+    ({
+      hingeJoints: internalHingeJoints,
+      connections,
+      sensors,
+      wheels,
+      modelLines,
+      element,
+      ...rest
+    }) => {
+      const transformedConnections = lego.elements.special.transformArray<Connection[]>(
+        connections,
+        coordinates,
+        transformationMatrix
+      );
+
+      // zuerst die ganze datei transformieren
+      const transformedSubFile = transformation.file.transform(modelLines, {
+        transformationMatrix,
+        coordinates,
+        color: "16",
+        fileName: ""
+      });
+
+      const transformedSensors = lego.elements.special.transformArray(
+        sensors,
+        coordinates,
+        transformationMatrix
+      );
+
+      const transformedWheels = lego.elements.special.transformArray<Wheel[]>(
+        wheels,
+        coordinates,
+        transformationMatrix
+      );
+
+      // console.log(wheels[0].rotation, transformedWheels[0].rotation, transformationMatrix);
+
+      return {
+        ...rest,
+        hingeJoints: transformHingeJoints(internalHingeJoints, coordinates, transformationMatrix),
+        modelLines: transformedSubFile,
+        wheels: transformedWheels,
+        sensors: transformedSensors,
+        connections: transformedConnections,
+        element: {
+          coordinate: transformation.point.transform(
+            element.coordinate,
+            coordinates,
+            transformationMatrix
+          ),
+          ...(element.rotation && {
+            rotation: transformation.matrix.transform(element.rotation, transformationMatrix)
+          })
+        }
+      };
+    }
+  );
+};
