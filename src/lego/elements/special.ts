@@ -333,9 +333,12 @@ const transformArray = <T extends LegoElement[]>(
       coordinate: oldCoordinate,
       direction: oldDirection,
       rotation: oldRotation,
+      auxilierDirection,
       // rotation,
       ...rest
     } = element as Sensor;
+
+    console.log("ELEMENT", auxilierDirection, element);
 
     // const newRotationMatrix = transformation.matrix.transform(
     //   rotation,
@@ -386,6 +389,16 @@ const transformArray = <T extends LegoElement[]>(
             )
           }
         : {}),
+      ...(auxilierDirection
+        ? {
+            auxilierDirection: transformation.point.transform(
+              auxilierDirection,
+              coordinates,
+              transformationMatrix
+            )
+          }
+        : {}),
+
       coordinate: transformation.point.transform(oldCoordinate, coordinates, transformationMatrix)
     });
   }

@@ -269,29 +269,40 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
               [0, -1, 0]
             ]),
             transformationMatrix
-          )
+          ),
+          {
+            auxilierDirection: transformation.point.transform(
+              transformation.point.add(coordinate, { x: 0, y: 0, z: 1 }),
+              coordinates,
+              transformationMatrix
+            )
+          }
         );
 
         newGraph[name].wheels.push({
-          rotation: transformationMatrix,
-          //transformation.matrix.transform(
-          //   matrix([
-          //     [1, 0, 0],
-          //     [0, 0, 1],
-          //     [0, -1, 0]
-          //   ]),
-          //   transformationMatrix
-          // ),
+          rotation: transformation.matrix.transform(
+            matrix([
+              [1, 0, 0],
+              [0, 0, 1],
+              [0, -1, 0]
+            ]),
+            transformationMatrix
+          ),
           // direction: transformation.point.transform(
           //   transformation.point.add(basePosition, direction),
           //   coordinates,
           //   transformationMatrix
           // ),
-          // direction: transformation.point.transform(
-          //   transformation.point.add(coordinate, { x: 0, y: 1, z: 0 }),
-          //   coordinates,
-          //   transformationMatrix
-          // ),
+          direction: transformation.point.transform(
+            transformation.point.add(coordinate, { x: 0, y: 1, z: 0 }),
+            coordinates,
+            transformationMatrix
+          ),
+          auxilierDirection: transformation.point.transform(
+            transformation.point.add(coordinate, { x: 0, y: 0, z: 1 }),
+            coordinates,
+            transformationMatrix
+          ),
           coordinate: transformation.point.transform(coordinate, coordinates, transformationMatrix),
           height,
           radius

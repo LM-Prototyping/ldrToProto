@@ -11,6 +11,7 @@ export interface LegoElement {
   // rotation:
   coordinate: Point;
   direction?: Point;
+  auxilierDirection?: Point;
   rotation?: math.Matrix;
 }
 

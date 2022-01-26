@@ -1,4 +1,4 @@
-import { matrix } from "mathjs";
+import { cos, cross, matrix, setDifference, sin } from "mathjs";
 import { webots } from ".";
 import { lego } from "../lego";
 import { DeviceInfo } from "../lego/types";
@@ -161,6 +161,7 @@ export const fileToShape = (
         coordinate,
         name,
         rotation: rotationMatrix,
+        auxilierDirection,
         direction,
         ...options
       } = specialElements[elementIndex];
@@ -225,38 +226,85 @@ export const fileToShape = (
   }
   const wheelsAsString = [] as string[];
   for (const wheel of wheels) {
-    const { coordinate, rotation, height, radius } = wheel;
+    const { coordinate, rotation, height, radius, direction, auxilierDirection } = wheel;
 
-    if (!rotation) {
+    if (!rotation || !direction || !auxilierDirection) {
+      console.log("RETURNING ");
       continue;
     }
 
-    // console.log(rotation, coordinate);
-    const rotationString = rotationMatrixToAngleAxis(
-      transformation.matrix.transform(
-        transformation.matrix.transform(
-          rotation,
-          matrix([
-            [1, 0, 0],
-            [0, 0, 1],
-            [0, -1, 0]
-          ])
-        ),
-        matrix([
-          [0, 0, 1],
-          [0, 1, 0],
-          [-1, 0, 0]
-        ])
-      ),
-      coordinate
-    );
-    // console.log(rotationString);
+    const diff = transformation.point.subtract(coordinate, direction);
+    const diff2 = transformation.point.subtract(coordinate, auxilierDirection);
 
-    console.log(rotation, "Rotation", rotationString);
+    const r1 = transformation.point.toReal(diff);
+    const r2 = transformation.point.toReal(diff2);
+
+    const { x, y, z } = transformation.point.normalize(transformation.point.toArray(r2));
+
+    const createMatrix = (angle: number) => {
+      const cosA = cos(angle);
+      const sinA = sin(angle);
+
+      const oneMin = 1 - cosA;
+
+      return matrix([
+        [x * x * oneMin + cosA, y * x * oneMin - z * sinA, z * x * oneMin + y * sinA],
+        [x * y * oneMin + z * sinA, y * y * oneMin + cosA, z * y * oneMin - x * sinA],
+        [x * z * oneMin - y * sinA, y * z * oneMin + x * sinA, z * z * oneMin + cosA]
+      ]);
+    };
+
+    // Drehung um vector diff2
+    let a = { zValue: Infinity, angle: 0 };
+    let b = { zValue: Infinity, angle: 2 * Math.PI };
+    const priorityQueue = [
+      { zValue: Infinity, angle: 0 },
+      { zValue: Infinity, angle: 2 * Math.PI }
+    ];
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 10; j++) {
+        const angle = a.angle + (j * (b.angle - a.angle)) / 10;
+
+        const rotationMatrix = createMatrix(angle);
+        const { z: zNewPoint } = transformation.point.transform(
+          transformation.point.scale(
+            r1,
+            matrix([
+              [1000, 0, 0],
+              [0, 1000, 0],
+              [0, 0, 1000]
+            ])
+          ),
+          transformation.point.toReal(coordinate),
+          rotationMatrix
+        );
+
+        priorityQueue.push({ zValue: 10000 * zNewPoint, angle });
+        priorityQueue.sort((a, b) => (a.zValue >= b.zValue ? 1 : -1));
+        priorityQueue.splice(2);
+      }
+
+      a = priorityQueue[0];
+      b = priorityQueue[1];
+    }
+
+    const rotMatrix = createMatrix(a.angle);
+
+    const realTo = transformation.point.transform(r1, { x: 0, y: 0, z: 0 }, rotMatrix);
+
+    const realFrom = {
+      ...transformation.point.transform(r2, { x: 0, y: 0, z: 0 }, rotMatrix),
+      z: 0
+    };
+
+    // Nun von dem Rotierten Vector auf diff
+    const rot2 = transformation.matrix.rotation(realFrom, realTo);
+
+    const rotationString = rotationMatrixToAngleAxis(rot2, coordinate);
 
     const element = webots.elements.transform(
       transformation.point.toReal(coordinate),
-      rotationString,
+      rotationString, // { ...axis, angle: Math.PI / 2 },
       webots.elements.geometry.cylinder(height * 0.01, radius * 0.01)
     );
     wheelsAsString.push(element);

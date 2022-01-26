@@ -88,7 +88,7 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
         transformationMatrix
       );
 
-      console.log(wheels[0].rotation, transformedWheels[0].rotation);
+      console.log(wheels, transformedWheels);
 
       // console.log(allConnections, connections);
 
