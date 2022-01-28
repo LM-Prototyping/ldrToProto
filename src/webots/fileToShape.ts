@@ -1,21 +1,16 @@
-import { cos, cross, matrix, setDifference, sin } from "mathjs";
 import { webots } from ".";
 import { lego } from "../lego";
 import { DeviceInfo } from "../lego/types";
 import { HingeJoint } from "../parsers/dependencyGraph/types";
-import { LineType3Data, LineType4Data, Point } from "../parsers/types";
-import { getLineData } from "../parsers/utils";
 import { transformation } from "../transformation";
 import { Sensor, Wheel } from "../types";
 import { elements } from "./elements";
-import { IndexedFaceSetObjectType, SubModuleIndexedFaceSetDict } from "./types";
-import { hexColorToBaseColorString, rotationMatrixToAngleAxis } from "./utils";
-
-const roundPoint = ({ x, y, z }: Point) => ({
-  x: Number(x.toFixed(5)),
-  y: Number(y.toFixed(5)),
-  z: Number(z.toFixed(5))
-});
+import {
+  getFaceSetPointsFromFile,
+  getWheelRotationMatrix,
+  hexColorToBaseColorString,
+  rotationMatrixToAngleAxis
+} from "./utils";
 
 export const fileToShape = (
   file: string[],
@@ -23,128 +18,18 @@ export const fileToShape = (
   hingeJoints: HingeJoint[] = [],
   wheels: Wheel[]
 ) => {
-  //
+  const faceSetPointsObject = getFaceSetPointsFromFile(file);
 
-  // console.log(wheels);
-
-  // Zuerst die File in reale Coordinaten transformieren und dann parsen
-  const fileToReal = transformation.file.toReal(file);
-
-  // Jetzt die File parsen und dabei unnötige Koordinaten entfernen
-  // und verschiedene Sets für unterschiedliche Farben erstellen
-  const objects = {} as SubModuleIndexedFaceSetDict;
-
-  for (const line of fileToReal) {
-    let lineData = undefined;
-    try {
-      lineData = getLineData(line);
-    } catch (e) {
-      continue;
-    }
-
-    const lineTypeMatch = line.match(/^\d+/);
-
-    if (!lineTypeMatch) {
-      continue;
-    }
-
-    const { color } = lineData;
-
-    if (!objects[color]) {
-      objects[color] = { maxIndex: 0, coordIndex: [] } as IndexedFaceSetObjectType;
-    }
-
-    let maxIndex = objects[color].maxIndex;
-
-    const lineType = lineTypeMatch[0];
-
-    switch (lineType) {
-      case "4": {
-        const { color, A, B, C, D } = lineData as LineType4Data;
-        const aAsString = transformation.point.toString(roundPoint(A));
-        const bAsString = transformation.point.toString(roundPoint(B));
-        const cAsString = transformation.point.toString(roundPoint(C));
-        const dAsString = transformation.point.toString(roundPoint(D));
-
-        let indexA = objects[color][aAsString];
-        if (indexA === null || indexA === undefined) {
-          indexA = maxIndex;
-          objects[color][aAsString] = maxIndex;
-          maxIndex++;
-        }
-        let indexB = objects[color][bAsString];
-        if (indexB === null || indexB === undefined) {
-          indexB = maxIndex;
-          objects[color][bAsString] = maxIndex;
-          maxIndex++;
-        }
-        let indexC = objects[color][cAsString];
-        if (indexC === null || indexC === undefined) {
-          indexC = maxIndex;
-          objects[color][cAsString] = maxIndex;
-          maxIndex++;
-        }
-        let indexD = objects[color][dAsString];
-        if (indexD === null || indexD === undefined) {
-          indexD = maxIndex;
-          objects[color][dAsString] = maxIndex;
-          maxIndex++;
-        }
-        // objects[color].coordIndex.push([indexA, indexB, indexC, indexD, "-1"].join(" "));
-        objects[color].coordIndex.push([indexA, indexB, indexC, "-1"].join(" "));
-        objects[color].coordIndex.push([indexC, indexD, indexA, "-1"].join(" "));
-        // objects[color].coordIndex.push([indexD, indexC, indexB, indexA, "-1"].join(" "));
-
-        objects[color].coordIndex.push([indexC, indexB, indexA, "-1"].join(" "));
-        objects[color].coordIndex.push([indexA, indexD, indexC, "-1"].join(" "));
-        break;
-      }
-      case "3": {
-        const { color, A, B, C } = lineData as LineType3Data;
-        const aAsString = transformation.point.toString(roundPoint(A));
-        const bAsString = transformation.point.toString(roundPoint(B));
-        const cAsString = transformation.point.toString(roundPoint(C));
-
-        let indexA = objects[color][aAsString];
-        if (indexA === null || indexA === undefined) {
-          indexA = maxIndex;
-          objects[color][aAsString] = maxIndex;
-          maxIndex++;
-        }
-
-        let indexB = objects[color][bAsString];
-        if (indexB === null || indexB === undefined) {
-          indexB = maxIndex;
-          objects[color][bAsString] = maxIndex;
-          maxIndex++;
-        }
-
-        let indexC = objects[color][cAsString];
-        if (indexC === null || indexC === undefined) {
-          indexC = maxIndex;
-          objects[color][cAsString] = maxIndex;
-          maxIndex++;
-        }
-
-        objects[color].coordIndex.push([indexA, indexB, indexC, "-1"].join(" "));
-        objects[color].coordIndex.push([indexC, indexB, indexA, "-1"].join(" "));
-
-        break;
-      }
-    }
-
-    objects[color].maxIndex = maxIndex;
-  }
-
+  // ####### FACE SET ########
   // Die unterschiediedlichen FaceSets erstellen. Für jede Farbe ein Set
   const faceSets = [] as string[];
 
-  for (const color of Object.keys(objects)) {
+  for (const color of Object.keys(faceSetPointsObject)) {
     const baseColorString = hexColorToBaseColorString(color);
 
     const shape = elements.shape(
       webots.elements.appearance.pbr(baseColorString),
-      webots.elements.geometry.indexedFaceSet(objects[color])
+      webots.elements.geometry.indexedFaceSet(faceSetPointsObject[color])
     );
 
     faceSets.push(shape);
@@ -152,6 +37,7 @@ export const fileToShape = (
 
   const devices = [] as string[];
 
+  // ####### SENSORS ########
   // Die unterschiedlichen Sensoren erstellen und zum Set hinzufügen
   if (specialElements && specialElements.length > 0) {
     for (const elementIndex in specialElements) {
@@ -193,6 +79,7 @@ export const fileToShape = (
     }
   }
 
+  // ####### HINGE JOINTS ########
   const hingeJointsAsString = [] as string[];
   for (const hinge of hingeJoints) {
     const { modelLines, sensors, hingeJoints, element, wheels, isMotor } = hinge;
@@ -218,6 +105,7 @@ export const fileToShape = (
     hingeJointsAsString.push(hingeJoint);
   }
 
+  // ####### WHEELS ########
   // // Ein Element kann immer nur ein einziges Bounding Object haben
   if (wheels.length > 1) {
     console.log(
@@ -226,90 +114,77 @@ export const fileToShape = (
   }
   const wheelsAsString = [] as string[];
   for (const wheel of wheels) {
-    const { coordinate, rotation, height, radius, direction, auxilierDirection } = wheel;
+    const { coordinate, height, radius, direction, auxilierDirection } = wheel;
 
-    if (!rotation || !direction || !auxilierDirection) {
+    if (!direction || !auxilierDirection) {
       console.log("RETURNING ");
       continue;
     }
 
-    const diff = transformation.point.subtract(coordinate, direction);
-    const diff2 = transformation.point.subtract(coordinate, auxilierDirection);
+    const primaryAxis = transformation.point.toReal(
+      transformation.point.subtract(coordinate, direction)
+    );
+    const counterAxis = transformation.point.toReal(
+      transformation.point.subtract(coordinate, auxilierDirection)
+    );
 
-    const r1 = transformation.point.toReal(diff);
-    const r2 = transformation.point.toReal(diff2);
+    const realCoordinates = transformation.point.toReal(coordinate);
 
-    const { x, y, z } = transformation.point.normalize(transformation.point.toArray(r2));
+    const rotationMatrix = getWheelRotationMatrix(primaryAxis, counterAxis, realCoordinates);
 
-    const createMatrix = (angle: number) => {
-      const cosA = cos(angle);
-      const sinA = sin(angle);
-
-      const oneMin = 1 - cosA;
-
-      return matrix([
-        [x * x * oneMin + cosA, y * x * oneMin - z * sinA, z * x * oneMin + y * sinA],
-        [x * y * oneMin + z * sinA, y * y * oneMin + cosA, z * y * oneMin - x * sinA],
-        [x * z * oneMin - y * sinA, y * z * oneMin + x * sinA, z * z * oneMin + cosA]
-      ]);
-    };
-
-    // Drehung um vector diff2
-    let a = { zValue: Infinity, angle: 0 };
-    let b = { zValue: Infinity, angle: 2 * Math.PI };
-    const priorityQueue = [
-      { zValue: Infinity, angle: 0 },
-      { zValue: Infinity, angle: 2 * Math.PI }
-    ];
-    for (let i = 0; i < 2; i++) {
-      for (let j = 0; j < 10; j++) {
-        const angle = a.angle + (j * (b.angle - a.angle)) / 10;
-
-        const rotationMatrix = createMatrix(angle);
-        const { z: zNewPoint } = transformation.point.transform(
-          transformation.point.scale(
-            r1,
-            matrix([
-              [1000, 0, 0],
-              [0, 1000, 0],
-              [0, 0, 1000]
-            ])
-          ),
-          transformation.point.toReal(coordinate),
-          rotationMatrix
-        );
-
-        priorityQueue.push({ zValue: 10000 * zNewPoint, angle });
-        priorityQueue.sort((a, b) => (a.zValue >= b.zValue ? 1 : -1));
-        priorityQueue.splice(2);
-      }
-
-      a = priorityQueue[0];
-      b = priorityQueue[1];
-    }
-
-    const rotMatrix = createMatrix(a.angle);
-
-    const realTo = transformation.point.transform(r1, { x: 0, y: 0, z: 0 }, rotMatrix);
-
-    const realFrom = {
-      ...transformation.point.transform(r2, { x: 0, y: 0, z: 0 }, rotMatrix),
-      z: 0
-    };
-
-    // Nun von dem Rotierten Vector auf diff
-    const rot2 = transformation.matrix.rotation(realFrom, realTo);
-
-    const rotationString = rotationMatrixToAngleAxis(rot2, coordinate);
+    const rotationString = rotationMatrixToAngleAxis(rotationMatrix, coordinate);
 
     const element = webots.elements.transform(
-      transformation.point.toReal(coordinate),
-      rotationString, // { ...axis, angle: Math.PI / 2 },
+      realCoordinates,
+      rotationString,
       webots.elements.geometry.cylinder(height * 0.01, radius * 0.01)
     );
     wheelsAsString.push(element);
 
     break;
+  }
+
+  // Wenn das Object keine Wheels und keinen Touch Sensor hat wird auch kein Bounding object erstellt
+  // -> Damit Hinge Joints richtig funktionieren muss trotzdem ein Bounding Object hinzugefügt werden
+  // Mittelpunkte aller Punkte wird berechnet und an diese Stelle wird kleiner Würfel gelegt
+  if (wheels.length <= 0) {
+    // TODO check for Touch Sensor
+
+    // console.log(faceSetPointsObject);
+    let pointSum = { x: 0, y: 0, z: 0 };
+    let pointsAmount = 0;
+
+    // Für jede Farbe
+    for (const color of Object.values(faceSetPointsObject)) {
+      for (const point of Object.keys(color)) {
+        if (point === "maxIndex" || point === "coordIndex") {
+          continue;
+        }
+        // console.log(color);
+        // console.log(point);
+
+        const [x, y, z] = point.split(" ").map((n) => Number(n));
+
+        pointSum = transformation.point.add(pointSum, { x, y, z });
+        pointsAmount++;
+      }
+    }
+
+    console.log(pointSum, pointsAmount);
+
+    const mean = {
+      x: pointSum.x / pointsAmount,
+      y: pointSum.y / pointsAmount,
+      z: pointSum.z / pointsAmount
+    };
+
+    wheelsAsString.push(
+      webots.elements.transform(
+        mean,
+        { x: 0, y: 0, z: 0, angle: 0 },
+        webots.elements.geometry.box({ x: 0.01, y: 0.01, z: 0.01 })
+      )
+    );
   }
 
   const solid = webots.elements.solid(
@@ -318,8 +193,6 @@ export const fileToShape = (
     [faceSets.join("\n"), devices.join("\n"), hingeJointsAsString.join("\n")],
     wheelsAsString.join("\n")
   );
-
-  // Jetzt HingeJoint Elemente erstellen
 
   return solid;
 };

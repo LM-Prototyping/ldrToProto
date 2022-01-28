@@ -1,6 +1,8 @@
-import math, { acos, pi, sqrt } from "mathjs";
-import { Point } from "../parsers/types";
+import math, { acos, cos, matrix, pi, sin, sqrt } from "mathjs";
+import { LineType3Data, LineType4Data, Point } from "../parsers/types";
+import { getLineData } from "../parsers/utils";
 import { transformation } from "../transformation";
+import { IndexedFaceSetObjectType, SubModuleIndexedFaceSetDict } from "./types";
 
 const hexToInt = (i: string) => parseInt(i, 16);
 
@@ -72,4 +74,193 @@ export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => 
   // console.log(A, p, angle);
 
   return { ...p, angle };
+};
+
+// Primary Axis ist der Punkt mit dem das Wheel alignen soll
+// Counter Axis ist die Axe um die sich das Rad normalerweise dreht
+// Coordinate ist der Koorinatenoffset des Wheels
+export const getWheelRotationMatrix = (
+  primaryAxis: Point,
+  counterAxis: Point,
+  coordinate: Point
+) => {
+  const { x, y, z } = transformation.point.normalize(transformation.point.toArray(counterAxis));
+
+  const createMatrix = (angle: number) => {
+    const cosA = cos(angle);
+    const sinA = sin(angle);
+
+    const oneMin = 1 - cosA;
+
+    return matrix([
+      [x * x * oneMin + cosA, y * x * oneMin - z * sinA, z * x * oneMin + y * sinA],
+      [x * y * oneMin + z * sinA, y * y * oneMin + cosA, z * y * oneMin - x * sinA],
+      [x * z * oneMin - y * sinA, y * z * oneMin + x * sinA, z * z * oneMin + cosA]
+    ]);
+  };
+
+  // Drehung um vector diff2
+  let a = { zValue: Infinity, angle: 0 };
+  let b = { zValue: Infinity, angle: 2 * Math.PI };
+  const priorityQueue = [
+    { zValue: Infinity, angle: 0 },
+    { zValue: Infinity, angle: 2 * Math.PI }
+  ];
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 25; j++) {
+      const angle = a.angle + (j * (b.angle - a.angle)) / 25;
+
+      const rotationMatrix = createMatrix(angle);
+      const { z: zNewPoint } = transformation.point.transform(
+        transformation.point.scale(
+          primaryAxis,
+          matrix([
+            [1000, 0, 0],
+            [0, 1000, 0],
+            [0, 0, 1000]
+          ])
+        ),
+        coordinate,
+        rotationMatrix
+      );
+
+      priorityQueue.push({ zValue: 10000 * zNewPoint, angle });
+      priorityQueue.sort((a, b) => (a.zValue >= b.zValue ? 1 : -1));
+      priorityQueue.splice(2);
+    }
+
+    a = priorityQueue[0];
+    b = priorityQueue[1];
+  }
+
+  const rotMatrix = createMatrix(a.angle);
+
+  const realTo = transformation.point.transform(primaryAxis, { x: 0, y: 0, z: 0 }, rotMatrix);
+
+  const realFrom = {
+    ...transformation.point.transform(counterAxis, { x: 0, y: 0, z: 0 }, rotMatrix),
+    z: 0
+  };
+
+  // Nun von dem Rotierten Vector auf diff
+  return transformation.matrix.rotation(realFrom, realTo);
+};
+
+const roundPoint = ({ x, y, z }: Point) => ({
+  x: Number(x.toFixed(5)),
+  y: Number(y.toFixed(5)),
+  z: Number(z.toFixed(5))
+});
+
+export const getFaceSetPointsFromFile = (file: string[]) => {
+  // Zuerst die File in reale Coordinaten transformieren und dann parsen
+  const fileToReal = transformation.file.toReal(file);
+
+  // Jetzt die File parsen und dabei unnötige Koordinaten entfernen
+  // und verschiedene Sets für unterschiedliche Farben erstellen
+  const objects = {} as SubModuleIndexedFaceSetDict;
+
+  for (const line of fileToReal) {
+    let lineData = undefined;
+    try {
+      lineData = getLineData(line);
+    } catch (e) {
+      continue;
+    }
+
+    const lineTypeMatch = line.match(/^\d+/);
+
+    if (!lineTypeMatch) {
+      continue;
+    }
+
+    const { color } = lineData;
+
+    if (!objects[color]) {
+      objects[color] = { maxIndex: 0, coordIndex: [] } as IndexedFaceSetObjectType;
+    }
+
+    let maxIndex = objects[color].maxIndex;
+
+    const lineType = lineTypeMatch[0];
+
+    switch (lineType) {
+      case "4": {
+        const { color, A, B, C, D } = lineData as LineType4Data;
+        const aAsString = transformation.point.toString(roundPoint(A));
+        const bAsString = transformation.point.toString(roundPoint(B));
+        const cAsString = transformation.point.toString(roundPoint(C));
+        const dAsString = transformation.point.toString(roundPoint(D));
+
+        let indexA = objects[color][aAsString];
+        if (indexA === null || indexA === undefined) {
+          indexA = maxIndex;
+          objects[color][aAsString] = maxIndex;
+          maxIndex++;
+        }
+        let indexB = objects[color][bAsString];
+        if (indexB === null || indexB === undefined) {
+          indexB = maxIndex;
+          objects[color][bAsString] = maxIndex;
+          maxIndex++;
+        }
+        let indexC = objects[color][cAsString];
+        if (indexC === null || indexC === undefined) {
+          indexC = maxIndex;
+          objects[color][cAsString] = maxIndex;
+          maxIndex++;
+        }
+        let indexD = objects[color][dAsString];
+        if (indexD === null || indexD === undefined) {
+          indexD = maxIndex;
+          objects[color][dAsString] = maxIndex;
+          maxIndex++;
+        }
+        // objects[color].coordIndex.push([indexA, indexB, indexC, indexD, "-1"].join(" "));
+        objects[color].coordIndex.push([indexA, indexB, indexC, "-1"].join(" "));
+        objects[color].coordIndex.push([indexC, indexD, indexA, "-1"].join(" "));
+        // objects[color].coordIndex.push([indexD, indexC, indexB, indexA, "-1"].join(" "));
+
+        objects[color].coordIndex.push([indexC, indexB, indexA, "-1"].join(" "));
+        objects[color].coordIndex.push([indexA, indexD, indexC, "-1"].join(" "));
+        break;
+      }
+      case "3": {
+        const { color, A, B, C } = lineData as LineType3Data;
+        const aAsString = transformation.point.toString(roundPoint(A));
+        const bAsString = transformation.point.toString(roundPoint(B));
+        const cAsString = transformation.point.toString(roundPoint(C));
+
+        let indexA = objects[color][aAsString];
+        if (indexA === null || indexA === undefined) {
+          indexA = maxIndex;
+          objects[color][aAsString] = maxIndex;
+          maxIndex++;
+        }
+
+        let indexB = objects[color][bAsString];
+        if (indexB === null || indexB === undefined) {
+          indexB = maxIndex;
+          objects[color][bAsString] = maxIndex;
+          maxIndex++;
+        }
+
+        let indexC = objects[color][cAsString];
+        if (indexC === null || indexC === undefined) {
+          indexC = maxIndex;
+          objects[color][cAsString] = maxIndex;
+          maxIndex++;
+        }
+
+        objects[color].coordIndex.push([indexA, indexB, indexC, "-1"].join(" "));
+        objects[color].coordIndex.push([indexC, indexB, indexA, "-1"].join(" "));
+
+        break;
+      }
+    }
+
+    objects[color].maxIndex = maxIndex;
+  }
+
+  return objects;
 };
