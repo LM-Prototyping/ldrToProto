@@ -5,6 +5,7 @@ import { parseLdrFile } from "./parsers/ldr";
 import { reduceFileElements } from "./parsers/reduceFileElements";
 import { getFileElements } from "./parsers/dependencyGraph";
 import { webots } from "./webots";
+import { fileToShape } from "./webots/fileToShape";
 
 const parseArguments = () => {
   const parser = new ArgumentParser();
@@ -18,13 +19,18 @@ const parseArguments = () => {
     default: "LegoMindstormRoboterProto"
   });
   parser.add_argument("-w", "--webotsPath", {
-    help: "Path to the webots directory (Not proto directory!)",
+    help: `Path to the webots directory (Not proto directory!). If 'createProto' is True, the proto will be stored in the /proto directory of 'webotsPath'. When 'createProto' is false, the solid will be appended to the specified world file.`,
     required: true
   });
-  parser.add_argument("-r", "--createRobot", {
-    help: "Wether or not a roboter node should be created, if false a solid node will be created",
+  parser.add_argument("-p", "--createProto", {
+    help: "Wether or not a proto node should be created, if false a file containing the robot will be created",
     required: false,
-    default: true
+    default: "true"
+  });
+  parser.add_argument("-world", "--worldFile", {
+    help: "Specifies the world file in with the robot should be stored if no proto is created.",
+    required: false,
+    default: ""
   });
 
   return parser.parse_args();
@@ -39,11 +45,16 @@ const readFile = (filePath: string) => {
 const main = () => {
   // read main file to start parsing
 
-  const { file, protoName, webotsPath, createRobot } = parseArguments();
+  const { file, protoName, webotsPath, createProto, worldFile } = parseArguments();
 
-  const shouldCreateRobot = createRobot === "true";
+  console.log("WORLD", worldFile);
 
-  console.log(file, protoName, webotsPath, createRobot);
+  const shouldCreateProto = createProto === "true";
+
+  if (!shouldCreateProto && worldFile.length <= 0) {
+    console.error("When no proto should be created a world file needs to be specified");
+    return 1;
+  }
 
   const fileContent = fs.readFileSync(file, "utf8");
 
@@ -53,11 +64,15 @@ const main = () => {
 
   // console.log(fileElements);
 
-  const mainFile = reduceFileElements(order, fileElements);
+  const robot = webots.robot(order, fileElements);
 
-  const protoString = webots.proto.createFromFile(mainFile, protoName);
-
-  fs.writeFileSync(webotsPath + "/protos/" + protoName + ".proto", protoString);
+  if (shouldCreateProto) {
+    const protoString = webots.proto.createFromFile(robot, protoName);
+    fs.writeFileSync(webotsPath + "/protos/" + protoName + ".proto", protoString);
+  } else {
+    console.log("appending", webotsPath + "/worlds/" + worldFile);
+    fs.appendFileSync(webotsPath + "/worlds/" + worldFile, robot);
+  }
 };
 
 main();

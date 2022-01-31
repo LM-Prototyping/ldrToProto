@@ -1,13 +1,4 @@
-import { FileElement } from "../parsers/dependencyGraph/types";
-// import { ProcessedFile } from "../parsers/types";
-import { fileToShape } from "./fileToShape";
-
-const createFromFile = (
-  { modelLines, sensors, hingeJoints, wheels }: FileElement,
-  protoName: string
-) => {
-  const indexedFaceSet = fileToShape(modelLines, sensors, hingeJoints, wheels);
-
+const createFromFile = (roboter: string, protoName: string) => {
   const proto = `
     PROTO ${protoName} [
       field SFVec3f     translation   0 0 0
@@ -19,7 +10,7 @@ const createFromFile = (
         translation IS translation
         rotation IS rotation
         controller IS controller
-      ${indexedFaceSet.replace(/Solid\s+{/, "")}
+      ${roboter.replace(/Robot\s+{/, "")}
     }`;
 
   return proto;

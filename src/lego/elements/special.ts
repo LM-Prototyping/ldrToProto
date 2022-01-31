@@ -1,16 +1,10 @@
-import math, { matrix } from "mathjs";
-import { lego } from "..";
+import math from "mathjs";
 import { LineType1Data, Point } from "../../parsers/types";
 import { getLineData } from "../../parsers/utils";
 import { transformation } from "../../transformation";
 import { LegoElement, Sensor } from "../../types";
-import { webots } from "../../webots";
 import { webotsDevices } from "../../webots/buildDevices";
-import { devices } from "../../webots/devices";
-import { Rotation } from "../../webots/types";
 import { DeviceInfoDict, PartTypeDict } from "../types";
-
-import { wheels } from "./wheels";
 
 export const specialParts: PartTypeDict = {
   // ms1040: {
