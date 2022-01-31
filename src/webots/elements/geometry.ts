@@ -54,8 +54,15 @@ const box = ({ x, y, z }: Point) => `
   }
 `;
 
+const sphere = (r: number) => `
+  Sphere {
+    radius ${r}
+  }
+`;
+
 export const geometry = {
   indexedFaceSet,
   cylinder,
-  box
+  box,
+  sphere
 };

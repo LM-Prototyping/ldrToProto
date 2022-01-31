@@ -17,6 +17,7 @@ export interface LegoElement {
 
 export interface Sensor extends LegoElement {
   name: string;
+  distance?: Point;
 }
 
 export interface TouchSensor extends Sensor {

@@ -13,7 +13,7 @@ const parseArguments = () => {
     help: "Path to the file you want to parse. Either absolute or relative",
     required: true
   });
-  parser.add_argument("-p", "--protoName", {
+  parser.add_argument("-n", "--protoName", {
     help: "Name of the created proto file",
     default: "LegoMindstormRoboterProto"
   });

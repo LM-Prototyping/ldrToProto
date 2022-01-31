@@ -5,8 +5,6 @@ import { FileElementDict, HingeJoint } from "./dependencyGraph/types";
 import { LineType1Data } from "./types";
 import { getLineData, transformHingeJoints } from "./utils";
 
-let motorIndex = 0;
-
 export const reduceFileElements = (order: string[], files: FileElementDict) => {
   for (const name of order) {
     // Hier Untermodelle Button up einfügen und ggf Transformationen durchführen
@@ -133,13 +131,6 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
             transformationMatrix
           );
 
-          let motorName: boolean | string = false;
-
-          if (isParentMotor || isChildMotor) {
-            motorName = (name + "_" + fileName).replace(/(\s+|\.ldr)/g, "") + "_" + motorIndex;
-            motorIndex += 1;
-          }
-
           hingeJoints.push({
             ...files[fileName],
             modelLines: transformedSubFile,
@@ -151,7 +142,7 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
             },
             hingeJoints: transformedHingeJoints,
             connections: transformedConnections,
-            isMotor: motorName
+            isMotor: isParentMotor || isChildMotor
           });
         }
         // console.log(el);

@@ -1,5 +1,7 @@
-import { matrix } from "mathjs";
+import { cross, matrix } from "mathjs";
 import { applyColorToLines } from "../../colors";
+import { configuration } from "../../configuration";
+import { Globals } from "../../global";
 import { lego } from "../../lego";
 import { specialParts } from "../../lego/elements/special";
 import { wheels } from "../../lego/elements/wheels";
@@ -126,78 +128,110 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
         );
         const { basePosition, direction } = lego.elements.special.devices[internalName];
 
-        // if (internalName === specialParts[53793].internalName) {
-        //   // Touch sensor
+        if (internalName === specialParts[53793].internalName) {
+          // Touch sensor
 
-        //   // Search for all green connectors
-        //   const connectors = [];
-        //   let rotationMatrix = transformationMatrix;
-        //   for (const line of file.split("\n")) {
-        //     const lineMatch = line.match(
-        //       /^1\s+(#[A-Fa-f\d]{6}|\d+)\s+(-?\d*.?\d*\s+){12}(?<fileName>[\w\d#-_\//]*)\./
-        //     );
+          // Search for all green connectors
+          const connectors = [];
+          let rotationMatrix = transformationMatrix;
+          for (const line of file.split("\n")) {
+            const lineMatch = line.match(
+              /^1\s+(#[A-Fa-f\d]{6}|\d+)\s+(-?\d*.?\d*\s+){12}(?<fileName>[\w\d#-_\//]*)\./
+            );
 
-        //     if (!lineMatch || !lineMatch.groups) {
-        //       continue;
-        //     }
+            if (!lineMatch || !lineMatch.groups) {
+              continue;
+            }
 
-        //     const { fileName } = lineMatch.groups;
+            const { fileName } = lineMatch.groups;
 
-        //     if (!specialParts[fileName] || specialParts[fileName].internalName !== "technic_pin") {
-        //       continue;
-        //     }
+            if (!specialParts[fileName] || specialParts[fileName].internalName !== "technic_pin") {
+              continue;
+            }
 
-        //     const {
-        //       transformationMatrix: tM,
-        //       coordinates,
-        //       color
-        //     } = getLineData(line) as LineType1Data;
+            const {
+              transformationMatrix: tM,
+              coordinates,
+              color
+            } = getLineData(line) as LineType1Data;
 
-        //     // Color must be green for touch sensor
-        //     if (color !== "2") {
-        //       continue;
-        //     }
+            // Color must be green for touch sensor
+            if (color !== "2") {
+              continue;
+            }
 
-        //     connectors.push(coordinates);
-        //     rotationMatrix = tM;
-        //   }
+            connectors.push(coordinates);
+            rotationMatrix = tM;
+          }
 
-        //   if (connectors.length != 4) {
-        //     console.log("Specifying bounding object for touch sensor only works with 4 pins");
-        //     continue;
-        //   }
+          if (connectors.length != 4) {
+            console.log("Specifying bounding object for touch sensor only works with 4 pins");
+            continue;
+          }
 
-        //   // Connectors müssen immer in einer oberen ecke starten und dann die andere obere ecke nehmen
-        //   const sizeX = transformation.point.distance(connectors[0], connectors[1]);
-        //   const sizeZ = transformation.point.distance(connectors[0], connectors[3]);
+          // Connectors müssen immer in einer oberen ecke starten und dann die andere obere ecke nehmen
+          const sizeX = transformation.point.distance(connectors[0], connectors[1]);
+          const sizeZ = transformation.point.distance(connectors[0], connectors[3]);
 
-        //   const center = transformation.point.subtract(
-        //     coordinates,
-        //     transformation.point.add(
-        //       connectors[2],
-        //       transformation.point.multiply(
-        //         transformation.point.subtract(connectors[2], connectors[0]),
-        //         0.5
-        //       )
-        //     )
-        //   );
+          const center = transformation.point.subtract(
+            coordinates,
+            transformation.point.add(
+              connectors[2],
+              transformation.point.multiply(
+                transformation.point.subtract(connectors[2], connectors[0]),
+                0.5
+              )
+            )
+          );
 
-        //   newGraph[name].sensors.push({
-        //     name: internalName,
-        //     rotation: transformation.matrix.transform(
-        //       matrix([
-        //         [1, 0, 0],
-        //         [0, 0, -1],
-        //         [0, 1, 0]
-        //       ]),
-        //       rotationMatrix
-        //     ),
-        //     coordinate: transformation.point.transform(center, coordinates, transformationMatrix),
-        //     distance: { x: sizeX, z: sizeZ, y: 20 }
-        //   });
+          console.log(
+            rotationMatrix,
+            transformation.matrix.transform(
+              matrix([
+                [1, 0, 0],
+                [0, 0, -1],
+                [0, 1, 0]
+              ]),
+              rotationMatrix
+            )
+          );
 
-        //   continue;
-        // }
+          const normal = transformation.point.fromArray(
+            cross(
+              transformation.point.toArray(
+                transformation.point.normalizePoint(
+                  transformation.point.subtract(connectors[0], connectors[2])
+                )
+              ),
+              transformation.point.toArray(
+                transformation.point.normalizePoint(
+                  transformation.point.subtract(connectors[1], connectors[3])
+                )
+              )
+            ) as number[]
+          );
+
+          newGraph[name].sensors.push({
+            name: internalName,
+            rotation: transformation.matrix.transform(
+              matrix([
+                [1, 0, 0],
+                [0, 0, -1],
+                [0, 1, 0]
+              ]),
+              rotationMatrix
+            ),
+            coordinate: transformation.point.transform(center, coordinates, transformationMatrix),
+            distance: { x: 20, z: sizeZ, y: sizeX },
+            direction: transformation.point.add(
+              { x: normal.x * 50, y: normal.y * 50, z: normal.z * 50 },
+              transformation.point.transform(center, coordinates, transformationMatrix)
+              // transformationMatrix
+            ) // Just a placeholder
+          });
+
+          continue;
+        }
 
         switch (type) {
           case "sensor": {
@@ -209,15 +243,6 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
 
             newGraph[name].sensors.push({
               name: internalName,
-              // transformation.matrix.transform(
-              // rotation: transformationMatrix, // transformation.matrix.transform(
-              //   matrix([
-              //     [1, 0, 0],
-              //     [0, 0, -1],
-              //     [0, 1, 0]
-              //   ]),
-              //   transformationMatrix
-              // ),
               coordinate: transformation.point.transform(
                 basePosition,
                 coordinates,
@@ -229,6 +254,7 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
                 transformationMatrix
               )
             });
+
             break;
           }
           case "connection": {
@@ -259,25 +285,6 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
 
       if (wheels[fileName]) {
         const { height, radius, coordinate } = wheels[fileName];
-
-        console.log(
-          "Wheel transformation",
-          transformation.matrix.transform(
-            matrix([
-              [1, 0, 0],
-              [0, 0, 1],
-              [0, -1, 0]
-            ]),
-            transformationMatrix
-          ),
-          {
-            auxilierDirection: transformation.point.transform(
-              transformation.point.add(coordinate, { x: 0, y: 0, z: 1 }),
-              coordinates,
-              transformationMatrix
-            )
-          }
-        );
 
         newGraph[name].wheels.push({
           rotation: transformation.matrix.transform(

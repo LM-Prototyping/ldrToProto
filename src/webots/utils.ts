@@ -1,4 +1,7 @@
 import math, { acos, cos, matrix, pi, sin, sqrt } from "mathjs";
+import { webots } from ".";
+import { configuration } from "../configuration";
+import { Globals } from "../global";
 import { LineType3Data, LineType4Data, Point } from "../parsers/types";
 import { getLineData } from "../parsers/utils";
 import { transformation } from "../transformation";
@@ -264,3 +267,13 @@ export const getFaceSetPointsFromFile = (file: string[]) => {
 
   return objects;
 };
+
+export const deviceHintSphere = (coordinate: Point, color: string) =>
+  webots.elements.transform(
+    coordinate,
+    { x: 0, y: 0, z: 0, angle: 0 },
+    webots.elements.shape(
+      webots.elements.appearance.pbr(hexColorToBaseColorString(color)),
+      `geometry ${webots.elements.geometry.sphere(0.003)}`
+    )
+  );

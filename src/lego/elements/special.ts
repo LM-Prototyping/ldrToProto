@@ -5,6 +5,8 @@ import { getLineData } from "../../parsers/utils";
 import { transformation } from "../../transformation";
 import { LegoElement, Sensor } from "../../types";
 import { webots } from "../../webots";
+import { webotsDevices } from "../../webots/buildDevices";
+import { devices } from "../../webots/devices";
 import { Rotation } from "../../webots/types";
 import { DeviceInfoDict, PartTypeDict } from "../types";
 
@@ -91,16 +93,17 @@ const partsDeviceInfo: DeviceInfoDict = {
       y: 0,
       z: -40
     },
-    buildElement: webots.devices.sensors.distance
+    buildElement: webotsDevices.distance
   },
-  // touch_sensor: {
-  //   basePosition: {
-  //     x: 0,
-  //     y: -40,
-  //     z: -90
-  //   },
-  //   buildElement: webots.devices.sensors.touch
-  // },
+  touch_sensor: {
+    basePosition: {
+      x: 0,
+      y: -40,
+      z: -80
+    },
+    direction: { x: 0, y: 0, z: 0 },
+    buildElement: webotsDevices.touch
+  },
   // compass_sensor: {
   //   basePosition: {
   //     x: 0,
@@ -120,7 +123,7 @@ const partsDeviceInfo: DeviceInfoDict = {
       y: 0,
       z: 1
     },
-    buildElement: (transform: Point, rotation: Rotation, name: string) => ""
+    buildElement: (s: Sensor) => ({ device: "", faceSet: "" })
   }
 };
 
@@ -338,37 +341,6 @@ const transformArray = <T extends LegoElement[]>(
       ...rest
     } = element as Sensor;
 
-    console.log("ELEMENT", auxilierDirection, element);
-
-    // const newRotationMatrix = transformation.matrix.transform(
-    //   rotation,
-    //   //transformationMatrix
-    //   transformationMatrix
-    // );
-    // const test = transformation.matrix.transform(
-    //   matrix([
-    //     [-1, 0, 0],
-    //     [0, 1, 0],
-    //     [0, 0, -1]
-    //   ]),
-    //   newRotationMatrix
-    // );
-    // const test2 = transformation.matrix.transform(
-    //   test,
-    //   matrix([
-    //     [1, 0, 0],
-    //     [0, 0, -1],
-    //     [0, 1, 0]
-    //   ])
-    // );
-
-    // if (!oldDirection) {
-    //   continue;
-    // }
-
-    // console.log("Result", rotation, newRotationMatrix);
-
-    // newSpecialElements.push({ name, line: newLine });
     newSpecialElements.push({
       ...rest,
       ...(oldRotation
@@ -398,7 +370,6 @@ const transformArray = <T extends LegoElement[]>(
             )
           }
         : {}),
-
       coordinate: transformation.point.transform(oldCoordinate, coordinates, transformationMatrix)
     });
   }

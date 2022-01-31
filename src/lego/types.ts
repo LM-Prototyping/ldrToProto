@@ -56,7 +56,7 @@
 // export type DeviceInfoDict = Dict<DeviceInfo>;
 
 import { Point } from "../parsers/types";
-import { Dict, Wheel, WheelPart } from "../types";
+import { Dict, Sensor, Wheel, WheelPart } from "../types";
 import { Rotation } from "../webots/types";
 
 export interface PartType {
@@ -93,14 +93,7 @@ export type PartTypeDict = Dict<PartType>;
 export interface DeviceInfo {
   basePosition: Point;
   direction: Point;
-  buildElement: (
-    transformation: Point,
-    rotation: Rotation,
-    name: string,
-    options?: {
-      distance?: Point;
-    }
-  ) => string;
+  buildElement: (sensor: Sensor) => { faceSet: string; device: string };
 }
 
 export type DeviceInfoDict = Dict<DeviceInfo>;

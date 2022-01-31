@@ -21,7 +21,7 @@ export type DependencyNodeDict = Dict<DependencyNode>;
 
 export interface HingeJoint extends FileElement {
   element: LegoElement;
-  isMotor: string | boolean;
+  isMotor: boolean;
 }
 
 export interface FileElement extends Pick<DependencyNode, "sensors" | "connections" | "wheels"> {

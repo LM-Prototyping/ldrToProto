@@ -21,18 +21,7 @@ const buildDistanceSensor = (t: Point, rotation: Rotation, name: string) => {
 `;
 };
 
-const buildTouchSensor = (
-  t: Point,
-  rotation: Rotation,
-  name: string,
-  options?: { distance?: Point }
-) => {
-  if (!options) {
-    return "";
-  }
-
-  const { distance } = options;
-
+const buildTouchSensor = (t: Point, rotation: Rotation, name: string, distance: Point) => {
   if (!distance) {
     return "";
   }

@@ -12,5 +12,43 @@ export const configuration = {
   rotational_motor: {
     maxVelocity: 20
   },
-  motor_detection_color_id: 4
+  motor_detection_color_id: 4,
+  max_sensors: 4,
+  sensors: [
+    {
+      name: "PORT_1",
+      color: "#16a34a"
+    },
+    {
+      name: "PORT_2",
+      color: "#2563eb"
+    },
+    {
+      name: "PORT_3",
+      color: "#dc2626"
+    },
+    {
+      name: "PORT_4",
+      color: "#fde047"
+    }
+  ],
+  max_motors: 4,
+  motors: [
+    {
+      name: "PORT_A",
+      color: "#f97316"
+    },
+    {
+      name: "PORT_B",
+      color: "#64748b"
+    },
+    {
+      name: "PORT_C",
+      color: "#7e22ce"
+    },
+    {
+      name: "PORT_D",
+      color: "#7f1d1d"
+    }
+  ]
 };

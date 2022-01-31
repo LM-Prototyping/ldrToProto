@@ -1,4 +1,6 @@
 import { webots } from ".";
+import { configuration } from "../configuration";
+import { Globals } from "../global";
 import { lego } from "../lego";
 import { DeviceInfo } from "../lego/types";
 import { HingeJoint } from "../parsers/dependencyGraph/types";
@@ -6,6 +8,7 @@ import { transformation } from "../transformation";
 import { Sensor, Wheel } from "../types";
 import { elements } from "./elements";
 import {
+  deviceHintSphere,
   getFaceSetPointsFromFile,
   getWheelRotationMatrix,
   hexColorToBaseColorString,
@@ -43,39 +46,51 @@ export const fileToShape = (
     for (const elementIndex in specialElements) {
       console.log("Special Element", elementIndex);
 
-      const {
-        coordinate,
-        name,
-        rotation: rotationMatrix,
-        auxilierDirection,
-        direction,
-        ...options
-      } = specialElements[elementIndex];
+      const { name } = specialElements[elementIndex];
 
-      if (!lego.elements.special.devices[name] || !direction) {
+      if (!lego.elements.special.devices[name]) {
+        continue;
+      }
+
+      if (Globals.sensors >= configuration.max_sensors) {
+        console.log(
+          "Model contains more than",
+          configuration.max_sensors,
+          "sensors, which is not allowed"
+        );
         continue;
       }
 
       const { buildElement } = lego.elements.special.devices[name] as DeviceInfo;
 
-      // const rot = transformation.matrix.ldrToWebots(rotationMatrix, coordinate);
+      const { device, faceSet } = buildElement(specialElements[elementIndex]);
 
-      const transformedNewPoint = transformation.point.toReal(coordinate);
-      const transformedDir = transformation.point.toReal(direction);
+      // const transformedNewPoint = transformation.point.toReal(coordinate);
+      // const transformedDir = transformation.point.toReal(direction);
 
-      const rot = transformation.matrix.rotation(
-        { x: 1, y: 0, z: 0 },
-        transformation.point.subtract(transformedNewPoint, transformedDir)
-      );
-      let rotation = rotationMatrixToAngleAxis(rot, coordinate);
+      // const rot = transformation.matrix.rotation(
+      //   { x: 1, y: 0, z: 0 },
+      //   transformation.point.subtract(transformedNewPoint, transformedDir)
+      // );
+      // let rotation = rotationMatrixToAngleAxis(rot, coordinate);
 
-      devices.push(
-        buildElement(transformedNewPoint, rotation, "test_sensor_" + elementIndex, options)
-      );
+      devices.push(device);
+      faceSets.push(faceSet);
 
       // devices.push(
-      //   buildElement(transformedDir, rotation, "test_sensor_" + elementIndex + 100, options)
+      //   buildElement(
+      //     transformedNewPoint,
+      //     rotation,
+      //     configuration.sensors[Globals.sensors].name,
+      //     options
+      //   )
       // );
+
+      // faceSets.push(
+      //   deviceHintSphere(transformedNewPoint, configuration.sensors[Globals.sensors].color)
+      // );
+
+      Globals.sensors += 1;
     }
   }
 
@@ -91,16 +106,32 @@ export const fileToShape = (
       continue;
     }
 
-    console.log("Adding Hinge Joint at", coordinate, transformation.point.toReal(coordinate));
+    const anchor = transformation.point.toReal(coordinate);
+
+    let motorName: boolean | string = false;
+
+    if (isMotor && Globals.motors < configuration.max_motors) {
+      motorName = configuration.motors[Globals.motors].name;
+      Globals.motors += 1;
+      faceSets.push(deviceHintSphere(anchor, configuration.motors[Globals.motors].color));
+    } else if (Globals.motors >= configuration.max_motors) {
+      console.log(
+        "Model contains more than",
+        configuration.max_motors,
+        "motors, which is not allowed"
+      );
+    }
+
+    console.log("Adding Hinge Joint at", coordinate, anchor);
 
     // console.log(rotation, coordinate);
     const rotatedAxis = transformation.point.transform({ x: 1, y: 0, z: 0 }, coordinate, rotation);
     // console.log(rotatedAxis);
     const hingeJoint = webots.elements.hingeJoint(
       transformation.point.subtract(rotatedAxis, coordinate),
-      transformation.point.toReal(coordinate),
+      anchor,
       endPoint,
-      isMotor
+      motorName
     );
     hingeJointsAsString.push(hingeJoint);
   }
