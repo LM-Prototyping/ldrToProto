@@ -5,6 +5,10 @@ export const configuration = {
     numberOfRays: 5,
     aperture: 0.2618
   },
+  brickPi: {
+    required: true,
+    fileName: "brickpi"
+  },
   compass_sensor: {
     lookupTable: [],
     resolution: -1
@@ -50,5 +54,9 @@ export const configuration = {
       name: "PORT_D",
       color: "#7f1d1d"
     }
-  ]
+  ],
+  performance: {
+    pointAccuracy: 2 // Between 2 and 4
+  },
+  wheelColor: "#333333"
 };

@@ -1,6 +1,10 @@
 import fs from "fs";
 import { applyColorToLines, getOriginalColorForInlineFile } from "../../colors";
+import { configuration } from "../../configuration";
+import { Globals } from "../../global";
 import { lego } from "../../lego";
+import { wheels } from "../../lego/elements/wheels";
+import { performance } from "../../performanceLevel";
 import { transformation } from "../../transformation";
 import { Dict } from "../../types";
 import { LineType1Data } from "../types";
@@ -14,8 +18,21 @@ const cache: Dict<string | undefined> = {};
 export const parseDatFile = (lineData: LineType1Data): string[] | undefined | null => {
   const { fileName } = lineData;
 
-  if (fileName.match(lego.elements.ignore.regexp)) {
+  if (fileName.match(configuration.brickPi.fileName) && configuration.brickPi.required) {
+    console.log("Found BrickPi");
+    Globals.brickPiExisting = true;
+  }
+
+  // Ab performanceLevel 1 werden Bauteile entfernt
+  if (fileName.match(lego.elements.ignore.regexp) && performance.shouldRemoveIgnoreFiles()) {
     // console.log("match ", fileName.match(lego.elements.ignore.regexp));
+    return null;
+  }
+
+  if (
+    performance.shouldReplaceWheels() &&
+    Object.keys(wheels).reduce((all, k) => all || !!fileName.match(k), false)
+  ) {
     return null;
   }
 
@@ -63,7 +80,7 @@ export const parseDatFile = (lineData: LineType1Data): string[] | undefined | nu
       const transformedSubFile = transformation.file.transform(subFileData, lineData);
       const transformedFileWithAppliedColors = applyColorToLines(
         transformedSubFile,
-        sublineData.color,
+        performance.shouldApplyColorToFile() ? sublineData.color : "16",
         getOriginalColorForInlineFile
       );
 

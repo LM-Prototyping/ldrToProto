@@ -1,32 +1,5 @@
 import { Dict } from "../types";
 
-// export interface FileNodeInfo {
-//   name: string;
-//   callsFiles: string[];
-// }
-
-// export interface FileNode {
-//   name: string;
-//   file: string;
-//   dependentFrom: FileNodeDict; // From which file is this file dependent
-//   dependentBy: FileNodeDict;
-// }
-
-// export interface ProcessedFile
-//   extends Pick<FileNodeWithSpecialElements, "specialElements" | "connections"> {
-//   name: string;
-//   modelLines: string[];
-//   hingeJoints?: HingeJointElement[];
-//   wheels: WheelElement[];
-// }
-// export interface HingeJointElement extends ProcessedFile {
-//   elementInfo: BaseElement;
-//   isMotor: string | boolean;
-// }
-// export type ProcessedFilesDict = Dict<ProcessedFile>;
-
-// export type FileNodeDict = Dict<FileNode>;
-
 export type LineType = "0" | "1" | "2" | "3" | "4";
 
 export interface Point {

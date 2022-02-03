@@ -4,6 +4,7 @@ import { configuration } from "../configuration";
 import { Globals } from "../global";
 import { LineType3Data, LineType4Data, Point } from "../parsers/types";
 import { getLineData } from "../parsers/utils";
+import { performance } from "../performanceLevel";
 import { transformation } from "../transformation";
 import { IndexedFaceSetObjectType, SubModuleIndexedFaceSetDict } from "./types";
 
@@ -149,11 +150,15 @@ export const getWheelRotationMatrix = (
   return transformation.matrix.rotation(realFrom, realTo);
 };
 
-const roundPoint = ({ x, y, z }: Point) => ({
-  x: Number(x.toFixed(5)),
-  y: Number(y.toFixed(5)),
-  z: Number(z.toFixed(5))
-});
+const roundPoint = ({ x, y, z }: Point) => {
+  const accuracy = performance.shouldRoundPoints() ? configuration.performance.pointAccuracy : 5;
+
+  return {
+    x: Number(x.toFixed(accuracy)),
+    y: Number(y.toFixed(accuracy)),
+    z: Number(z.toFixed(accuracy))
+  };
+};
 
 export const getFaceSetPointsFromFile = (file: string[]) => {
   // Zuerst die File in reale Coordinaten transformieren und dann parsen

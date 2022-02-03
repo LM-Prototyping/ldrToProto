@@ -6,6 +6,8 @@ import { reduceFileElements } from "./parsers/reduceFileElements";
 import { getFileElements } from "./parsers/dependencyGraph";
 import { webots } from "./webots";
 import { fileToShape } from "./webots/fileToShape";
+import { configuration } from "./configuration";
+import { Globals } from "./global";
 
 const parseArguments = () => {
   const parser = new ArgumentParser();
@@ -28,9 +30,15 @@ const parseArguments = () => {
     default: "true"
   });
   parser.add_argument("-world", "--worldFile", {
-    help: "Specifies the world file in with the robot should be stored if no proto is created.",
+    help: "Specifies the world file in which the robot should be stored if no proto is created.",
     required: false,
     default: ""
+  });
+  parser.add_argument("-performance", "--performanceLevel", {
+    help: "Specifies how exact the model should be parsed. The lower the level, the less adjustments are made at the model.",
+    required: false,
+    default: "0",
+    choices: ["0", "1", "2", "3", "4"]
   });
 
   return parser.parse_args();
@@ -45,10 +53,10 @@ const readFile = (filePath: string) => {
 const main = () => {
   // read main file to start parsing
 
-  const { file, protoName, webotsPath, createProto, worldFile } = parseArguments();
+  const { file, protoName, webotsPath, createProto, worldFile, performanceLevel } =
+    parseArguments();
 
-  console.log("WORLD", worldFile);
-
+  Globals.performanceLevel = Number(performanceLevel);
   const shouldCreateProto = createProto === "true";
 
   if (!shouldCreateProto && worldFile.length <= 0) {
@@ -61,6 +69,12 @@ const main = () => {
   const filesAsString = parseLdrFile(fileContent);
 
   const { order, fileElements } = getFileElements(filesAsString);
+
+  // Check if BrickPi is required and exists
+  if (configuration.brickPi.required && !Globals.brickPiExisting) {
+    console.log("BrickPi is required but does not exist in the current model");
+    return;
+  }
 
   // console.log(fileElements);
 

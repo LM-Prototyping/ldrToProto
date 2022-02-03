@@ -4,6 +4,7 @@ import { Globals } from "../global";
 import { lego } from "../lego";
 import { DeviceInfo } from "../lego/types";
 import { HingeJoint } from "../parsers/dependencyGraph/types";
+import { performance } from "../performanceLevel";
 import { transformation } from "../transformation";
 import { Sensor, Wheel } from "../types";
 import { elements } from "./elements";
@@ -165,12 +166,22 @@ export const fileToShape = (
 
     const rotationString = rotationMatrixToAngleAxis(rotationMatrix, coordinate);
 
-    const element = webots.elements.transform(
-      realCoordinates,
-      rotationString,
-      webots.elements.geometry.cylinder(height * 0.01, radius * 0.01)
-    );
-    wheelsAsString.push(element);
+    const cylinder = webots.elements.geometry.cylinder(height * 0.01, radius * 0.01);
+
+    wheelsAsString.push(webots.elements.transform(realCoordinates, rotationString, cylinder));
+
+    if (performance.shouldReplaceWheels()) {
+      faceSets.push(
+        webots.elements.transform(
+          realCoordinates,
+          rotationString,
+          webots.elements.shape(
+            webots.elements.appearance.pbr(hexColorToBaseColorString(configuration.wheelColor)),
+            `geometry ${cylinder}`
+          )
+        )
+      );
+    }
 
     break;
   }
@@ -200,8 +211,6 @@ export const fileToShape = (
         pointsAmount++;
       }
     }
-
-    console.log(pointSum, pointsAmount);
 
     const mean = {
       x: pointSum.x / pointsAmount,
