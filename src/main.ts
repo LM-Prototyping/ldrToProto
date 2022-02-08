@@ -2,10 +2,8 @@ import { ArgumentParser } from "argparse";
 import fs from "fs";
 
 import { parseLdrFile } from "./parsers/ldr";
-import { reduceFileElements } from "./parsers/reduceFileElements";
 import { getFileElements } from "./parsers/dependencyGraph";
 import { webots } from "./webots";
-import { fileToShape } from "./webots/fileToShape";
 import { configuration } from "./configuration";
 import { Globals } from "./global";
 import { printDevicesOverview, writeDeviceInfoYaml } from "./utils";
