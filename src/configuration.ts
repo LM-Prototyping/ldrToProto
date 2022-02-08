@@ -58,5 +58,15 @@ export const configuration = {
   performance: {
     pointAccuracy: 2 // Between 2 and 4
   },
-  wheelColor: "#333333"
+  wheelColor: "#333333",
+  directories: {
+    legoPartsLibrary: {
+      basePath: "../legoParts",
+      dirs: ["/parts", "/p"],
+      colors: "/LDConfig.ldr"
+    },
+    webots: "../webotsWorkspace",
+    robotConfiguration: "../rosWorkspace/src/robotConfiguration"
+  }
 };
+

@@ -1,9 +1,9 @@
-import { Constants } from "../../constants";
 import fs from "fs";
+import { configuration } from "../../configuration";
 
 export const readDatFile = (fileName: string) => {
-  for (const filePath of Constants.PARTS_LIBRARY_DIRS.map(
-    (dir) => Constants.PARTS_LIBRARY_BASE_PATH + dir
+  for (const filePath of configuration.directories.legoPartsLibrary.dirs.map(
+    (dir) => configuration.directories.legoPartsLibrary.basePath + dir
   )) {
     try {
       return fs.readFileSync(filePath + "/" + fileName.toLowerCase(), "utf8");
@@ -12,3 +12,4 @@ export const readDatFile = (fileName: string) => {
 
   return undefined;
 };
+

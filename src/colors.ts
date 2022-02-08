@@ -1,11 +1,12 @@
 import fs from "fs";
+import { configuration } from "./configuration";
 
-import { Constants } from "./constants";
 import { Color, ColorsDict } from "./parsers/types";
 
 const parseColors = () => {
   const fileContent = fs.readFileSync(
-    Constants.PARTS_LIBRARY_BASE_PATH + Constants.COLORS_FILE,
+    configuration.directories.legoPartsLibrary.basePath +
+      configuration.directories.legoPartsLibrary.colors,
     "utf8"
   );
 
@@ -78,3 +79,4 @@ export const getOriginalColor = (lineColorCode: string, originalColor: string) =
 
   return colors[lineColorCode].value;
 };
+

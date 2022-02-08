@@ -21,7 +21,8 @@ const parseArguments = () => {
   });
   parser.add_argument("-w", "--webotsPath", {
     help: `Path to the webots directory (Not proto directory!). If 'createProto' is True, the proto will be stored in the /proto directory of 'webotsPath'. When 'createProto' is false, the solid will be appended to the specified world file.`,
-    required: true
+    required: false,
+    default: configuration.directories.webots
   });
   parser.add_argument("-p", "--createProto", {
     help: "Wether or not a proto node should be created, if false a file containing the robot will be created",
@@ -41,12 +42,6 @@ const parseArguments = () => {
   });
 
   return parser.parse_args();
-};
-
-const readFile = (filePath: string) => {
-  const fileContent = fs.readFileSync(filePath, "utf8");
-
-  return fileContent;
 };
 
 const main = () => {
@@ -77,7 +72,7 @@ const main = () => {
 
   // console.log(fileElements);
 
-  const { robot, devicesOnPorts } = webots.robot(order, fileElements);
+  const { robot, devicesOnPorts } = webots.robot(order, fileElements, protoName);
 
   // Create proto file or append to world file
   if (shouldCreateProto) {
@@ -90,7 +85,8 @@ const main = () => {
 
   // Create ports configuration file
   printDevicesOverview(devicesOnPorts);
-  writeDeviceInfoYaml(devicesOnPorts);
+  writeDeviceInfoYaml(devicesOnPorts, protoName);
 };
 
 main();
+
