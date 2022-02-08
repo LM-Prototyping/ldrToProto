@@ -27,10 +27,15 @@
   },
   "dependencies": {
     "@types/argparse": "^2.0.10",
+    "@types/cli-table": "^0.3.0",
+    "@types/js-yaml": "^4.0.5",
     "argparse": "^2.0.1",
+    "cli-table": "^0.3.11",
+    "js-yaml": "^4.1.0",
     "jshint": "^2.13.1",
     "math": "^0.0.3",
     "mathjs": "^10.0.0",
+    "prettytable": "^0.3.1",
     "ts-node": "^10.4.0",
     "tshint": "^0.0.2"
   }

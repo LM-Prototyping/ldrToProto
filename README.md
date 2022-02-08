@@ -22,7 +22,7 @@ chmod +x install.sh && source install.sh
 
 ### Prerequisities
 
-You need to have a working installation of _node_ and _npm_ on your machine. After cloning this repo you should also run `git submodules --init --recursive` to pull all submodules. This will pull a repository containing all LEGO components.
+You need to have a working installation of _node_ and _npm_ on your machine. After cloning this repo you should also run `git submodule --init --recursive` to pull all submodules. This will pull a repository containing all LEGO components.
 
 ### Installation
 

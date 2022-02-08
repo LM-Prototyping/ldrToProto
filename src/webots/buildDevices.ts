@@ -1,12 +1,11 @@
 import { webots } from ".";
 import { configuration } from "../configuration";
 import { Globals } from "../global";
-import { Point } from "../parsers/types";
+import { BuildElementFunction } from "../lego/types";
 import { transformation } from "../transformation";
-import { Sensor } from "../types";
 import { deviceHintSphere, rotationMatrixToAngleAxis } from "./utils";
 
-const distanceSensor = ({ coordinate, direction }: Sensor) => {
+const distanceSensor: BuildElementFunction = ({ coordinate, direction }) => {
   if (!direction) {
     return { device: "", faceSet: "" };
   }
@@ -31,17 +30,19 @@ const distanceSensor = ({ coordinate, direction }: Sensor) => {
     configuration.sensors[Globals.sensors].color
   );
 
-  return { device, faceSet };
+  return {
+    device,
+    faceSet,
+    portInfo: { type: "distance", ...configuration.sensors[Globals.sensors] }
+  };
 };
 
-const touchSensor = ({ coordinate, rotation, distance, direction }: Sensor) => {
+const touchSensor: BuildElementFunction = ({ coordinate, rotation, distance, direction }) => {
   if (!rotation || !distance || !direction) {
     return { device: "", faceSet: "" };
   }
 
   const transformedCoordinate = transformation.point.toReal(coordinate);
-
-  const rotationString = rotationMatrixToAngleAxis(rotation, coordinate);
 
   const transformedNewPoint = transformation.point.toReal(coordinate);
   const transformedDir = transformation.point.toReal(direction);
@@ -60,8 +61,6 @@ const touchSensor = ({ coordinate, rotation, distance, direction }: Sensor) => {
   );
 
   const faceSet = [];
-
-  console.log(direction);
 
   faceSet.push(
     webots.elements.transform(
@@ -85,7 +84,11 @@ const touchSensor = ({ coordinate, rotation, distance, direction }: Sensor) => {
     )
   );
 
-  return { device, faceSet: faceSet.join("") };
+  return {
+    device,
+    faceSet: faceSet.join(""),
+    portInfo: { type: "touch", ...configuration.sensors[Globals.sensors] }
+  };
 };
 
 export const webotsDevices = {

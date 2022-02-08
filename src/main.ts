@@ -8,6 +8,7 @@ import { webots } from "./webots";
 import { fileToShape } from "./webots/fileToShape";
 import { configuration } from "./configuration";
 import { Globals } from "./global";
+import { printDevicesOverview, writeDeviceInfoYaml } from "./utils";
 
 const parseArguments = () => {
   const parser = new ArgumentParser();
@@ -37,7 +38,7 @@ const parseArguments = () => {
   parser.add_argument("-performance", "--performanceLevel", {
     help: "Specifies how exact the model should be parsed. The lower the level, the less adjustments are made at the model.",
     required: false,
-    default: "0",
+    default: "1",
     choices: ["0", "1", "2", "3", "4"]
   });
 
@@ -78,8 +79,9 @@ const main = () => {
 
   // console.log(fileElements);
 
-  const robot = webots.robot(order, fileElements);
+  const { robot, devicesOnPorts } = webots.robot(order, fileElements);
 
+  // Create proto file or append to world file
   if (shouldCreateProto) {
     const protoString = webots.proto.createFromFile(robot, protoName);
     fs.writeFileSync(webotsPath + "/protos/" + protoName + ".proto", protoString);
@@ -87,6 +89,10 @@ const main = () => {
     console.log("appending", webotsPath + "/worlds/" + worldFile);
     fs.appendFileSync(webotsPath + "/worlds/" + worldFile, robot);
   }
+
+  // Create ports configuration file
+  printDevicesOverview(devicesOnPorts);
+  writeDeviceInfoYaml(devicesOnPorts);
 };
 
 main();

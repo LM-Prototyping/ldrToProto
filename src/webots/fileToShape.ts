@@ -2,7 +2,7 @@ import { webots } from ".";
 import { configuration } from "../configuration";
 import { Globals } from "../global";
 import { lego } from "../lego";
-import { DeviceInfo } from "../lego/types";
+import { DeviceInfo, PortInfo } from "../lego/types";
 import { HingeJoint } from "../parsers/dependencyGraph/types";
 import { performance } from "../performanceLevel";
 import { transformation } from "../transformation";
@@ -41,6 +41,8 @@ export const fileToShape = (
 
   const devices = [] as string[];
 
+  const devicesOnPorts = [] as PortInfo[];
+
   // ####### SENSORS ########
   // Die unterschiedlichen Sensoren erstellen und zum Set hinzufügen
   if (specialElements && specialElements.length > 0) {
@@ -64,32 +66,13 @@ export const fileToShape = (
 
       const { buildElement } = lego.elements.special.devices[name] as DeviceInfo;
 
-      const { device, faceSet } = buildElement(specialElements[elementIndex]);
-
-      // const transformedNewPoint = transformation.point.toReal(coordinate);
-      // const transformedDir = transformation.point.toReal(direction);
-
-      // const rot = transformation.matrix.rotation(
-      //   { x: 1, y: 0, z: 0 },
-      //   transformation.point.subtract(transformedNewPoint, transformedDir)
-      // );
-      // let rotation = rotationMatrixToAngleAxis(rot, coordinate);
+      const { device, faceSet, portInfo } = buildElement(specialElements[elementIndex]);
 
       devices.push(device);
       faceSets.push(faceSet);
-
-      // devices.push(
-      //   buildElement(
-      //     transformedNewPoint,
-      //     rotation,
-      //     configuration.sensors[Globals.sensors].name,
-      //     options
-      //   )
-      // );
-
-      // faceSets.push(
-      //   deviceHintSphere(transformedNewPoint, configuration.sensors[Globals.sensors].color)
-      // );
+      if (portInfo) {
+        devicesOnPorts.push(portInfo);
+      }
 
       Globals.sensors += 1;
     }
@@ -99,7 +82,16 @@ export const fileToShape = (
   const hingeJointsAsString = [] as string[];
   for (const hinge of hingeJoints) {
     const { modelLines, sensors, hingeJoints, element, wheels, isMotor } = hinge;
-    const endPoint = fileToShape(modelLines, sensors, hingeJoints, wheels);
+    const { element: endPoint, devicesOnPorts: inlinePortInfo } = fileToShape(
+      modelLines,
+      sensors,
+      hingeJoints,
+      wheels
+    );
+
+    if (inlinePortInfo) {
+      devicesOnPorts.push(...inlinePortInfo);
+    }
 
     const { coordinate, rotation } = element;
 
@@ -115,6 +107,7 @@ export const fileToShape = (
       motorName = configuration.motors[Globals.motors].name;
       Globals.motors += 1;
       faceSets.push(deviceHintSphere(anchor, configuration.motors[Globals.motors].color));
+      devicesOnPorts.push({ type: "motor", ...configuration.motors[Globals.motors] });
     } else if (Globals.motors >= configuration.max_motors) {
       console.log(
         "Model contains more than",
@@ -234,5 +227,5 @@ export const fileToShape = (
     wheelsAsString.join("\n")
   );
 
-  return solid;
+  return { element: solid, devicesOnPorts };
 };

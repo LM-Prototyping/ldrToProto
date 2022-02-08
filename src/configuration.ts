@@ -16,8 +16,8 @@ export const configuration = {
   rotational_motor: {
     maxVelocity: 20
   },
-  motor_detection_color_id: 4,
-  max_sensors: 4,
+  motor_detection_color_id: 4, // do not increase
+  max_sensors: 4, // do not increase
   sensors: [
     {
       name: "PORT_1",
