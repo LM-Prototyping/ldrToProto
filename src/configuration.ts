@@ -66,7 +66,7 @@ export const configuration = {
       colors: "/LDConfig.ldr"
     },
     webots: "../webotsWorkspace",
-    robotConfiguration: "../rosWorkspace/src/robotConfiguration"
+    robotConfiguration: "../ros2Workspace/src/brickpi3_ros2/configuration"
   }
 };
 
