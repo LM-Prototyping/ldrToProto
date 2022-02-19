@@ -105,9 +105,9 @@ export const fileToShape = (
 
     if (isMotor && Globals.motors < configuration.max_motors) {
       motorName = configuration.motors[Globals.motors].name;
-      Globals.motors += 1;
       faceSets.push(deviceHintSphere(anchor, configuration.motors[Globals.motors].color));
       devicesOnPorts.push({ type: "motor", ...configuration.motors[Globals.motors] });
+      Globals.motors += 1;
     } else if (Globals.motors >= configuration.max_motors) {
       console.log(
         "Model contains more than",

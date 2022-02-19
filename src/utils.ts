@@ -1,6 +1,6 @@
 import Table from "cli-table";
-import yaml from "js-yaml";
 import fs from "fs";
+import yaml from "js-yaml";
 
 import { PortInfo } from "./lego/types";
 import { configuration } from "./configuration";
@@ -25,3 +25,59 @@ export const writeDeviceInfoYaml = (devicesOnPorts: PortInfo[], robotName: strin
   );
 };
 
+// export const writeDeviceInfoXML = (devicesOnPorts: PortInfo[], robotName: string) => {
+//   const declaration = {
+//     _declaration: {
+//       _attributes: {
+//         version: "1.0",
+//         encoding: "utf-8"
+//       }
+//     }
+//   };
+
+//   const devices = [];
+
+//   for (const d of devicesOnPorts) {
+//     const { type, name } = d;
+
+//     const pluginName = configuration.plugins[type];
+
+//     if (!pluginName) {
+//       console.log("No plugin available for type", type);
+//       continue;
+//     }
+
+//     const pluginElement = {
+//       _attributes: {
+//         type: pluginName
+//       },
+//       robotName: {
+//         _text: robotName
+//       },
+//       port: {
+//         _text: name
+//       }
+//     };
+
+//     devices.push(pluginElement);
+//   }
+
+//   const completeXmlDescription = {
+//     ...declaration,
+//     robot: {
+//       _attributes: {
+//         name: robotName
+//       },
+//       webots: {
+//         plugin: devices
+//       }
+//     }
+//   };
+
+//   const xml = convert.json2xml(JSON.stringify(completeXmlDescription), {
+//     spaces: 4,
+//     compact: true
+//   });
+
+//   fs.writeFileSync(configuration.directories.robotConfiguration + "/" + robotName + ".urdf", xml);
+// };

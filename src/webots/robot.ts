@@ -9,7 +9,7 @@ export const createRobot = (order: string[], fileElements: FileElementDict, robo
   return {
     robot: `Robot {
       controller "<extern>"
-      name: "${robotName}"
+      name "${robotName}"
   ${element.replace(/Solid\s+{/, "")}
   `,
     devicesOnPorts

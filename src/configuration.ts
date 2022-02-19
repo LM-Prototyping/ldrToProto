@@ -66,7 +66,11 @@ export const configuration = {
       colors: "/LDConfig.ldr"
     },
     webots: "../webotsWorkspace",
-    robotConfiguration: "../ros2Workspace/src/brickpi3_ros2/configuration"
+    robotConfiguration: "../ros2Workspace/src/brickpi3_ros2/resources"
+  },
+  plugins: {
+    motor: "brickpi3_ros2.motor_plugin.MotorPlugin",
+    distance: "brickpi3_ros2.distance_plugin.DistancePlugin",
+    touch: "brickpi3_ros2.distance_plugin.TouchPlugin"
   }
 };
-

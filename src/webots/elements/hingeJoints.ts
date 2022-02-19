@@ -24,6 +24,10 @@ export const hingeJoint = (
               name "${isMotor}"
               maxVelocity ${maxVelocity}
             }
+            PositionSensor {
+              name "${isMotor}_position"
+              noise 0.0174
+            }
           ]
         `
           : ""

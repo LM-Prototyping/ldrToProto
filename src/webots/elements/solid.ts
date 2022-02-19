@@ -16,7 +16,6 @@ export const solid = (
         ${boundingObject ? "boundingObject " + boundingObject : ""} 
         physics Physics {
         }
-        name "${randomNumber}"
     }
 `;
 };

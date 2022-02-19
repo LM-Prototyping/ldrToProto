@@ -3,7 +3,7 @@ const createFromFile = (roboter: string, protoName: string) => {
     PROTO ${protoName} [
       field SFVec3f     translation   0 0 0
       field SFRotation  rotation      0 1 0 0
-      field SFString    controller    ""
+      field SFString    controller    "<extern>"
     ]
     {
       Robot {
