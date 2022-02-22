@@ -3,6 +3,7 @@ import { configuration } from "../configuration";
 import { Globals } from "../global";
 import { BuildElementFunction } from "../lego/types";
 import { transformation } from "../transformation";
+import { getSensorConfig } from "../utils";
 import { deviceHintSphere, rotationMatrixToAngleAxis } from "./utils";
 
 const distanceSensor: BuildElementFunction = ({ coordinate, direction, auxilierDirections }) => {
@@ -11,12 +12,7 @@ const distanceSensor: BuildElementFunction = ({ coordinate, direction, auxilierD
   }
 
   const transformedNewPoint = transformation.point.toReal(coordinate);
-  const transformedDir = transformation.point.toReal(direction);
 
-  // const rot = transformation.matrix.rotation(
-  //   { x: 1, y: 0, z: 0 },
-  //   transformation.point.subtract(transformedNewPoint, transformedDir)
-  // );
   const rotation = transformation.matrix.rotationFromCoordinates(
     transformedNewPoint,
     direction,
@@ -29,18 +25,18 @@ const distanceSensor: BuildElementFunction = ({ coordinate, direction, auxilierD
   const device = webots.devices.sensors.distance(
     transformedNewPoint,
     rotationAngleAxis,
-    configuration.sensors[Globals.sensors % 4].name
+    getSensorConfig(Globals.sensors).name
   );
 
-  const faceSet = deviceHintSphere(
-    transformedNewPoint,
-    configuration.sensors[Globals.sensors % 4].color
-  );
+  const faceSet = deviceHintSphere(transformedNewPoint, getSensorConfig(Globals.sensors).color);
 
   return {
     device,
     faceSet,
-    portInfo: { type: "distance", ...configuration.sensors[Globals.sensors % 4] }
+    portInfo: {
+      type: "distance",
+      ...getSensorConfig(Globals.sensors)
+    }
   };
 };
 
@@ -51,10 +47,7 @@ const compassSensor: BuildElementFunction = ({ coordinate, direction, auxilierDi
 
   const transformedNewPoint = transformation.point.toReal(coordinate);
 
-  const faceSet = deviceHintSphere(
-    transformedNewPoint,
-    configuration.sensors[Globals.sensors % 4].color
-  );
+  const faceSet = deviceHintSphere(transformedNewPoint, getSensorConfig(Globals.sensors).color);
 
   const rotation = transformation.matrix.rotationFromCoordinates(
     transformedNewPoint,
@@ -68,13 +61,16 @@ const compassSensor: BuildElementFunction = ({ coordinate, direction, auxilierDi
   const device = webots.devices.sensors.compass(
     transformedNewPoint,
     rotationAngleAxis,
-    configuration.sensors[Globals.sensors % 4].name
+    getSensorConfig(Globals.sensors).name
   );
 
   return {
     device,
     faceSet: faceSet,
-    portInfo: { type: "compass", ...configuration.sensors[Globals.sensors % 4] }
+    portInfo: {
+      type: "compass",
+      ...getSensorConfig(Globals.sensors)
+    }
   };
 };
 
@@ -103,17 +99,20 @@ const touchSensor: BuildElementFunction = ({
   const device = webots.devices.sensors.touch(
     transformedCoordinate,
     rotationAngleAxis,
-    configuration.sensors[Globals.sensors % 4].name,
+    getSensorConfig(Globals.sensors).name,
     distance
   );
 
   return {
     device,
     faceSet: deviceHintSphere(
-      transformedCoordinate,
-      configuration.sensors[Globals.sensors % 4].color
+      transformation.point.multiply(transformedCoordinate, 1.01),
+      getSensorConfig(Globals.sensors).color
     ),
-    portInfo: { type: "touch", ...configuration.sensors[Globals.sensors] }
+    portInfo: {
+      type: "touch",
+      ...getSensorConfig(Globals.sensors)
+    }
   };
 };
 

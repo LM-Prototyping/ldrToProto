@@ -17,7 +17,7 @@ export const configuration = {
     maxVelocity: 20
   },
   motor_detection_color_id: 4, // do not increase
-  max_sensors: 1000, // do not increase
+  max_sensors: 4, // do not increase
   sensors: [
     {
       name: "PORT_1",
@@ -71,6 +71,8 @@ export const configuration = {
   plugins: {
     motor: "brickpi3_ros2.motor_plugin.MotorPlugin",
     distance: "brickpi3_ros2.distance_plugin.DistancePlugin",
-    touch: "brickpi3_ros2.distance_plugin.TouchPlugin"
+    touch: "brickpi3_ros2.distance_plugin.TouchPlugin",
+    compass: "brickpi3_ros2.compass_plugin.CompassPlugin",
+    light: "brickpi3_ros2.light_plugin.LightPlugin"
   }
 };

@@ -1,4 +1,3 @@
-import { transform } from "typescript";
 import { webots } from ".";
 import { configuration } from "../configuration";
 import { Globals } from "../global";
@@ -12,7 +11,6 @@ import { elements } from "./elements";
 import {
   deviceHintSphere,
   getFaceSetPointsFromFile,
-  getWheelRotationMatrix,
   hexColorToBaseColorString,
   rotationMatrixToAngleAxis
 } from "./utils";

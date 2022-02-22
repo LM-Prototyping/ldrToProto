@@ -6,7 +6,7 @@ import { getFileElements } from "./parsers/dependencyGraph";
 import { webots } from "./webots";
 import { configuration } from "./configuration";
 import { Globals } from "./global";
-import { printDevicesOverview, writeDeviceInfoYaml } from "./utils";
+import { printDevicesOverview, writeDeviceInfoXML } from "./utils";
 
 const parseArguments = () => {
   const parser = new ArgumentParser();
@@ -85,7 +85,7 @@ const main = () => {
 
   // Create ports configuration file
   printDevicesOverview(devicesOnPorts);
-  writeDeviceInfoYaml(devicesOnPorts, protoName);
+  writeDeviceInfoXML(devicesOnPorts, protoName);
 };
 
 main();
