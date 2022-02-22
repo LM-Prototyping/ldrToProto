@@ -70,8 +70,20 @@ const rotation = (from: Point, to: Point): math.Matrix => {
   return rotationMatrix;
 };
 
+const rotationFromCoordinates = (offset: Point, x: Point, y: Point, z: Point) => {
+  const createMatrixVector = (vec: Point) =>
+    transformation.point.toArray(
+      transformation.point.normalizePoint(
+        transformation.point.subtract(offset, transformation.point.toReal(vec))
+      )
+    );
+
+  return mathJsMatrix([createMatrixVector(x), createMatrixVector(y), createMatrixVector(z)]);
+};
+
 export const matrix = {
   transform,
   ldrToWebots,
-  rotation
+  rotation,
+  rotationFromCoordinates
 };

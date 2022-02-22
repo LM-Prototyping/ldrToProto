@@ -1,3 +1,4 @@
+import { transform } from "typescript";
 import { webots } from ".";
 import { configuration } from "../configuration";
 import { Globals } from "../global";
@@ -155,13 +156,26 @@ export const fileToShape = (
 
     const realCoordinates = transformation.point.toReal(coordinate);
 
-    const rotationMatrix = getWheelRotationMatrix(primaryAxis, counterAxis, realCoordinates);
+    const rotationMatrix = transformation.matrix.rotationFromCoordinates(
+      realCoordinates,
+      direction,
+      auxilierDirections[1],
+      auxilierDirections[0]
+    );
 
-    const rotationString = rotationMatrixToAngleAxis(rotationMatrix, coordinate);
+    const rotationString = rotationMatrixToAngleAxis(rotationMatrix, 1);
 
     const cylinder = webots.elements.geometry.cylinder(height * 0.01, radius * 0.01);
 
     wheelsAsString.push(webots.elements.transform(realCoordinates, rotationString, cylinder));
+
+    faceSets.push(
+      ...[
+        deviceHintSphere(transformation.point.toReal(direction), "#FF0000"),
+        deviceHintSphere(transformation.point.toReal(auxilierDirections[1]), "#00FF00"),
+        deviceHintSphere(transformation.point.toReal(auxilierDirections[0]), "#0000FF")
+      ]
+    );
 
     if (performance.shouldReplaceWheels()) {
       faceSets.push(
@@ -206,9 +220,9 @@ export const fileToShape = (
     }
 
     const mean = {
-      x: pointSum.x / pointsAmount,
-      y: pointSum.y / pointsAmount,
-      z: pointSum.z / pointsAmount
+      x: pointSum.x / pointsAmount || 0,
+      y: pointSum.y / pointsAmount || 0,
+      z: pointSum.z / pointsAmount || 0
     };
 
     wheelsAsString.push(

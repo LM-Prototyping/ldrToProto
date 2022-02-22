@@ -228,7 +228,17 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
               { x: normal.x * 50, y: normal.y * 50, z: normal.z * 50 },
               transformation.point.transform(center, coordinates, transformationMatrix)
               // transformationMatrix
-            ) // Just a placeholder
+            ), // Just a placeholder,
+            auxilierDirections: [
+              transformation.point.add(
+                transformation.point.transform(center, coordinates, transformationMatrix),
+                transformation.point.subtract(connectors[3], connectors[0])
+              ),
+              transformation.point.add(
+                transformation.point.transform(center, coordinates, transformationMatrix),
+                transformation.point.subtract(connectors[2], connectors[3])
+              )
+            ]
           });
 
           continue;
@@ -308,19 +318,19 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
             ]),
             transformationMatrix
           ),
-          // direction: transformation.point.transform(
-          //   transformation.point.add(basePosition, direction),
-          //   coordinates,
-          //   transformationMatrix
-          // ),
           direction: transformation.point.transform(
-            transformation.point.add(coordinate, { x: 0, y: 1, z: 0 }),
+            transformation.point.add(coordinate, { x: 10, y: 0, z: 0 }),
             coordinates,
             transformationMatrix
           ),
           auxilierDirections: [
             transformation.point.transform(
-              transformation.point.add(coordinate, { x: 0, y: 0, z: 1 }),
+              transformation.point.add(coordinate, { x: 0, y: 0, z: 10 }),
+              coordinates,
+              transformationMatrix
+            ),
+            transformation.point.transform(
+              transformation.point.add(coordinate, { x: 0, y: 10, z: 0 }),
               coordinates,
               transformationMatrix
             )

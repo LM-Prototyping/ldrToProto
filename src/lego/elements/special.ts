@@ -87,6 +87,14 @@ const partsDeviceInfo: DeviceInfoDict = {
       y: 0,
       z: -40
     },
+    auxilierDirections: [
+      {
+        x: 0,
+        y: -20,
+        z: 0
+      },
+      { x: 20, y: 0, z: 0 }
+    ],
     buildElement: webotsDevices.distance
   },
   touch_sensor: {
