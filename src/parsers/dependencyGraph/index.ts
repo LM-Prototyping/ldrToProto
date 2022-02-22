@@ -1,4 +1,5 @@
 import { cross, matrix } from "mathjs";
+import { transform } from "typescript";
 import { applyColorToLines } from "../../colors";
 import { configuration } from "../../configuration";
 import { Globals } from "../../global";
@@ -235,7 +236,8 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
 
         switch (type) {
           case "sensor": {
-            const { basePosition, direction } = lego.elements.special.devices[internalName];
+            const { basePosition, direction, auxilierDirections } =
+              lego.elements.special.devices[internalName];
 
             if (!direction) {
               continue;
@@ -252,7 +254,18 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
                 transformation.point.add(basePosition, direction),
                 coordinates,
                 transformationMatrix
-              )
+              ),
+              ...(auxilierDirections && auxilierDirections.length > 0
+                ? {
+                    auxilierDirections: auxilierDirections.map((auxilierDirection) =>
+                      transformation.point.transform(
+                        transformation.point.add(basePosition, auxilierDirection),
+                        coordinates,
+                        transformationMatrix
+                      )
+                    )
+                  }
+                : {})
             });
 
             break;
@@ -305,11 +318,13 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
             coordinates,
             transformationMatrix
           ),
-          auxilierDirection: transformation.point.transform(
-            transformation.point.add(coordinate, { x: 0, y: 0, z: 1 }),
-            coordinates,
-            transformationMatrix
-          ),
+          auxilierDirections: [
+            transformation.point.transform(
+              transformation.point.add(coordinate, { x: 0, y: 0, z: 1 }),
+              coordinates,
+              transformationMatrix
+            )
+          ],
           coordinate: transformation.point.transform(coordinate, coordinates, transformationMatrix),
           height,
           radius

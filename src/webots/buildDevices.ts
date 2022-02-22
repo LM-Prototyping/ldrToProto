@@ -1,7 +1,9 @@
+import { matrix } from "mathjs";
 import { webots } from ".";
 import { configuration } from "../configuration";
 import { Globals } from "../global";
 import { BuildElementFunction } from "../lego/types";
+import { Point } from "../parsers/types";
 import { transformation } from "../transformation";
 import { deviceHintSphere, rotationMatrixToAngleAxis } from "./utils";
 
@@ -34,6 +36,46 @@ const distanceSensor: BuildElementFunction = ({ coordinate, direction }) => {
     device,
     faceSet,
     portInfo: { type: "distance", ...configuration.sensors[Globals.sensors] }
+  };
+};
+
+const compassSensor: BuildElementFunction = ({ coordinate, direction, auxilierDirections }) => {
+  if (!direction || !auxilierDirections) {
+    return { device: "", faceSet: "" };
+  }
+
+  const transformedNewPoint = transformation.point.toReal(coordinate);
+
+  const faceSet = deviceHintSphere(
+    transformedNewPoint,
+    configuration.sensors[Globals.sensors % 4].color
+  );
+
+  const createMatrixVector = (vec: Point) =>
+    transformation.point.toArray(
+      transformation.point.normalizePoint(
+        transformation.point.subtract(transformedNewPoint, transformation.point.toReal(vec))
+      )
+    );
+
+  const rotation = matrix([
+    createMatrixVector(direction),
+    createMatrixVector(auxilierDirections[1]),
+    createMatrixVector(auxilierDirections[0])
+  ]);
+
+  let rotationAngleAxis = rotationMatrixToAngleAxis(rotation, coordinate);
+
+  const device = webots.devices.sensors.compass(
+    transformedNewPoint,
+    rotationAngleAxis,
+    configuration.sensors[Globals.sensors % 4].name
+  );
+
+  return {
+    device,
+    faceSet: faceSet,
+    portInfo: { type: "compass", ...configuration.sensors[Globals.sensors % 4] }
   };
 };
 
@@ -93,5 +135,6 @@ const touchSensor: BuildElementFunction = ({ coordinate, rotation, distance, dir
 
 export const webotsDevices = {
   distance: distanceSensor,
-  touch: touchSensor
+  touch: touchSensor,
+  compass: compassSensor
 };

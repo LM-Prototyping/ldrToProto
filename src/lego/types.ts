@@ -91,7 +91,7 @@ export type PartTypeDict = Dict<PartType>;
 // export type FileNodeWithSpecialElementsDict = Dict<FileNodeWithSpecialElements>;
 
 export interface PortInfo {
-  type: "distance" | "touch" | "motor";
+  type: "distance" | "touch" | "motor" | "compass" | "light";
   name: string;
   color: string;
 }
@@ -105,6 +105,7 @@ export type BuildElementFunction = (sensor: Sensor) => {
 export interface DeviceInfo {
   basePosition: Point;
   direction: Point;
+  auxilierDirections?: Point[];
   buildElement: BuildElementFunction;
 }
 

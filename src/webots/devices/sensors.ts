@@ -39,12 +39,11 @@ const buildTouchSensor = (t: Point, rotation: Rotation, name: string, distance: 
 };
 
 const buildCompassSensor = (t: Point, rotation: Rotation, name: string) => {
-  const { lookupTable, resolution } = configuration.compass_sensor;
-
   return `
     Compass {
-      lookupTable ${lookupTable}
-      resolution ${resolution}
+      translation ${transformation.point.toString(t)}
+      rotation ${transformation.point.toString(rotation as Point)} ${rotation.angle}
+      zAxis FALSE
       name "${name}"
     }
   `;

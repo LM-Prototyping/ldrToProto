@@ -139,9 +139,9 @@ export const fileToShape = (
   }
   const wheelsAsString = [] as string[];
   for (const wheel of wheels) {
-    const { coordinate, height, radius, direction, auxilierDirection } = wheel;
+    const { coordinate, height, radius, direction, auxilierDirections } = wheel;
 
-    if (!direction || !auxilierDirection) {
+    if (!direction || !auxilierDirections) {
       console.log("RETURNING ");
       continue;
     }
@@ -150,7 +150,7 @@ export const fileToShape = (
       transformation.point.subtract(coordinate, direction)
     );
     const counterAxis = transformation.point.toReal(
-      transformation.point.subtract(coordinate, auxilierDirection)
+      transformation.point.subtract(coordinate, auxilierDirections[0])
     );
 
     const realCoordinates = transformation.point.toReal(coordinate);

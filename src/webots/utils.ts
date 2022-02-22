@@ -48,13 +48,16 @@ export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => 
   // console.log(angle, A);
 
   if (angle === 0) {
+    console.log("CASE 0");
     return { x: 1, y: 0, z: 0, angle: 0 };
   } else if (angle.toFixed(6) === pi.toFixed(6)) {
     if (A[0][0] > A[1][1] && A[0][0] > A[2][2]) {
       p.x = sqrt(A[0][0] - A[1][1] - A[2][2] + 1) / 2;
       p.y = A[0][1] / (2 * p.x);
       p.z = A[0][2] / (2 * p.x);
+      console.log("CASE 1");
     } else if (A[1][1] > A[0][0] && A[1][1] > A[2][2]) {
+      console.log("CASE 2");
       p.y = sqrt(A[1][1] - A[0][0] - A[2][2] + 1) / 2;
       p.x = A[0][1] / (2 * p.y);
       p.z = A[1][2] / (2 * p.y);
@@ -68,11 +71,13 @@ export const rotationMatrixToAngleAxis = (matrix: math.Matrix, coord: Point) => 
         p.x = A[0][2] / (2 * p.z);
         p.y = A[1][2] / (2 * p.z);
       }
+      console.log("CASE 3");
     }
   } else {
-    p.x = A[2][1] - A[1][2];
-    p.y = A[0][2] - A[2][0];
-    p.z = A[1][0] - A[0][1];
+    p.x = A[1][2] - A[2][1];
+    p.y = A[2][0] - A[0][2];
+    p.z = A[0][1] - A[1][0];
+    console.log("CASE 4");
   }
 
   // console.log(A, p, angle);

@@ -98,14 +98,27 @@ const partsDeviceInfo: DeviceInfoDict = {
     direction: { x: 0, y: 0, z: 0 },
     buildElement: webotsDevices.touch
   },
-  // compass_sensor: {
-  //   basePosition: {
-  //     x: 0,
-  //     y: -40,
-  //     z: -90
-  //   },
-  //   buildElement: webots.devices.sensors.compass
-  // },
+  compass_sensor: {
+    basePosition: {
+      x: 0,
+      y: -40,
+      z: -90
+    },
+    direction: {
+      x: 0,
+      y: 0,
+      z: -40
+    },
+    auxilierDirections: [
+      {
+        x: 0,
+        y: -20,
+        z: 0
+      },
+      { x: 20, y: 0, z: 0 }
+    ],
+    buildElement: webotsDevices.compass
+  },
   technic_pin: {
     basePosition: {
       x: 1,
@@ -324,13 +337,11 @@ const transformArray = <T extends LegoElement[]>(
   const newSpecialElements = [] as unknown as T;
 
   for (const element of specialElements) {
-    // console.log("Apply matrix", transformationMatrix);
-
     const {
       coordinate: oldCoordinate,
       direction: oldDirection,
       rotation: oldRotation,
-      auxilierDirection,
+      auxilierDirections,
       // rotation,
       ...rest
     } = element as Sensor;
@@ -339,11 +350,7 @@ const transformArray = <T extends LegoElement[]>(
       ...rest,
       ...(oldRotation
         ? {
-            rotation: transformation.matrix.transform(
-              oldRotation,
-              //transformationMatrix
-              transformationMatrix
-            )
+            rotation: transformation.matrix.transform(oldRotation, transformationMatrix)
           }
         : {}),
       ...(oldDirection
@@ -355,12 +362,10 @@ const transformArray = <T extends LegoElement[]>(
             )
           }
         : {}),
-      ...(auxilierDirection
+      ...(auxilierDirections && auxilierDirections.length > 0
         ? {
-            auxilierDirection: transformation.point.transform(
-              auxilierDirection,
-              coordinates,
-              transformationMatrix
+            auxilierDirections: auxilierDirections.map((auxilierDirection) =>
+              transformation.point.transform(auxilierDirection, coordinates, transformationMatrix)
             )
           }
         : {}),

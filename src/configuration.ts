@@ -6,7 +6,7 @@ export const configuration = {
     aperture: 0.2618
   },
   brickPi: {
-    required: true,
+    required: false,
     fileName: "brickpi"
   },
   compass_sensor: {
@@ -17,7 +17,7 @@ export const configuration = {
     maxVelocity: 20
   },
   motor_detection_color_id: 4, // do not increase
-  max_sensors: 4, // do not increase
+  max_sensors: 10, // do not increase
   sensors: [
     {
       name: "PORT_1",
