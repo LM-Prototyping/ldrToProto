@@ -8,7 +8,7 @@ export const hingeJoint = (
   endPoint: string,
   isMotor: boolean | string
 ) => {
-  const { maxVelocity } = configuration.rotational_motor;
+  const { maxVelocity } = configuration.rotationalMotor;
 
   return `
     HingeJoint {

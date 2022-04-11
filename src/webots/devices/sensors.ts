@@ -6,7 +6,7 @@ import { configuration } from "../../configuration";
 import { webots } from "..";
 
 const buildDistanceSensor = (t: Point, rotation: Rotation, name: string) => {
-  const { lookupTable, type, numberOfRays, aperture } = configuration.distance_sensor;
+  const { lookupTable, type, numberOfRays, aperture } = configuration.sensors.distance;
 
   return `
     DistanceSensor {
@@ -49,8 +49,24 @@ const buildCompassSensor = (t: Point, rotation: Rotation, name: string) => {
   `;
 };
 
+const buildLightSensor = (t: Point, rotation: Rotation, name: string) => {
+  const { fieldOfView, width, height } = configuration.sensors.light;
+
+  return `
+    Camera {
+      translation ${transformation.point.toString(t)}
+      rotation ${transformation.point.toString(rotation as Point)} ${rotation.angle}
+      fieldOfView ${fieldOfView}
+      width ${width}
+      height ${height}
+      name "${name}"
+    }
+  `;
+};
+
 export const sensors = {
   distance: buildDistanceSensor,
   touch: buildTouchSensor,
-  compass: buildCompassSensor
+  compass: buildCompassSensor,
+  light: buildLightSensor
 };

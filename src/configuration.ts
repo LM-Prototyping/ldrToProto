@@ -1,24 +1,28 @@
 export const configuration = {
-  distance_sensor: {
-    lookupTable: [0, 0, 0.03, 0.1, 0.1, 0.3, 2.55, 2.55, 0.012, 2.58, 255, 0],
-    type: "sonar",
-    numberOfRays: 5,
-    aperture: 0.2618
+  sensors: {
+    distance: {
+      lookupTable: [0, 0, 0.03, 0.1, 0.1, 0.3, 2.55, 2.55, 0.012, 2.58, 255, 0],
+      type: "sonar",
+      numberOfRays: 5,
+      aperture: 0.2618
+    },
+    light: {
+      width: 32,
+      height: 32,
+      fieldOfView: 0.25
+    }
   },
+
   brickPi: {
     required: false,
     fileName: "brickpi"
   },
-  compass_sensor: {
-    lookupTable: [],
-    resolution: -1
-  },
-  rotational_motor: {
+  rotationalMotor: {
     maxVelocity: 20
   },
-  motor_detection_color_id: 4, // do not increase
-  max_sensors: 4, // do not increase
-  sensors: [
+  motorDetectionColorId: 4, // do not increase
+  maxSensors: 4, // do not increase
+  sensorsOnPorts: [
     {
       name: "PORT_1",
       color: "#16a34a"
@@ -36,8 +40,8 @@ export const configuration = {
       color: "#fde047"
     }
   ],
-  max_motors: 4,
-  motors: [
+  maxMotors: 4,
+  motorsOnPorts: [
     {
       name: "PORT_A",
       color: "#f97316"
@@ -66,13 +70,13 @@ export const configuration = {
       colors: "/LDConfig.ldr"
     },
     webots: "../webotsWorkspace",
-    robotConfiguration: "../ros2Workspace/src/brickpi3_ros2/resources"
+    robotConfiguration: "../ros2Workspace/src/webots_ros2/resources"
   },
   plugins: {
-    motor: "brickpi3_ros2.motor_plugin.MotorPlugin",
-    distance: "brickpi3_ros2.distance_plugin.DistancePlugin",
-    touch: "brickpi3_ros2.distance_plugin.TouchPlugin",
-    compass: "brickpi3_ros2.compass_plugin.CompassPlugin",
-    light: "brickpi3_ros2.light_plugin.LightPlugin"
+    motor: "webots_ros2.motor_plugin.MotorPlugin",
+    distance: "webots_ros2.distance_plugin.DistancePlugin",
+    touch: "webots_ros2.distance_plugin.TouchPlugin",
+    compass: "webots_ros2.compass_plugin.CompassPlugin",
+    light: "webots_ros2.light_plugin.LightPlugin"
   }
 };

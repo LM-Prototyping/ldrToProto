@@ -54,10 +54,10 @@ export const fileToShape = (
         continue;
       }
 
-      if (Globals.sensors >= configuration.max_sensors) {
+      if (Globals.sensors >= configuration.maxSensors) {
         console.log(
           "Model contains more than",
-          configuration.max_sensors,
+          configuration.maxSensors,
           "sensors, which is not allowed"
         );
         continue;
@@ -102,15 +102,17 @@ export const fileToShape = (
 
     let motorName: boolean | string = false;
 
-    if (isMotor && Globals.motors < configuration.max_motors) {
-      motorName = configuration.motors[Globals.motors].name;
-      faceSets.push(deviceHintSphere(anchor, configuration.motors[Globals.motors].color));
-      devicesOnPorts.push({ type: "motor", ...configuration.motors[Globals.motors] });
+    if (isMotor && Globals.motors < configuration.maxMotors) {
+      motorName = configuration.motorsOnPorts[Globals.motors].name;
+
+      faceSets.push(deviceHintSphere(anchor, configuration.motorsOnPorts[Globals.motors].color));
+      devicesOnPorts.push({ type: "motor", ...configuration.motorsOnPorts[Globals.motors] });
+
       Globals.motors += 1;
-    } else if (Globals.motors >= configuration.max_motors) {
+    } else if (Globals.motors >= configuration.maxMotors) {
       console.log(
         "Model contains more than",
-        configuration.max_motors,
+        configuration.maxMotors,
         "motors, which is not allowed"
       );
     }
@@ -145,12 +147,12 @@ export const fileToShape = (
       continue;
     }
 
-    const primaryAxis = transformation.point.toReal(
-      transformation.point.subtract(coordinate, direction)
-    );
-    const counterAxis = transformation.point.toReal(
-      transformation.point.subtract(coordinate, auxilierDirections[0])
-    );
+    // const primaryAxis = transformation.point.toReal(
+    //   transformation.point.subtract(coordinate, direction)
+    // );
+    // const counterAxis = transformation.point.toReal(
+    //   transformation.point.subtract(coordinate, auxilierDirections[0])
+    // );
 
     const realCoordinates = transformation.point.toReal(coordinate);
 
@@ -167,13 +169,13 @@ export const fileToShape = (
 
     wheelsAsString.push(webots.elements.transform(realCoordinates, rotationString, cylinder));
 
-    faceSets.push(
-      ...[
-        deviceHintSphere(transformation.point.toReal(direction), "#FF0000"),
-        deviceHintSphere(transformation.point.toReal(auxilierDirections[1]), "#00FF00"),
-        deviceHintSphere(transformation.point.toReal(auxilierDirections[0]), "#0000FF")
-      ]
-    );
+    // faceSets.push(
+    //   ...[
+    //     deviceHintSphere(transformation.point.toReal(direction), "#FF0000"),
+    //     deviceHintSphere(transformation.point.toReal(auxilierDirections[1]), "#00FF00"),
+    //     deviceHintSphere(transformation.point.toReal(auxilierDirections[0]), "#0000FF")
+    //   ]
+    // );
 
     if (performance.shouldReplaceWheels()) {
       faceSets.push(

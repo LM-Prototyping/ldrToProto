@@ -86,10 +86,6 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
         transformationMatrix
       );
 
-      console.log(wheels, transformedWheels);
-
-      // console.log(allConnections, connections);
-
       // Elements of subModell
       // Hier checken ob das Untermodell eine Connection mit dem Main modell teilt.
       // Wenn ja dann ist das Untermodell ein lose verbundenes Child des Main modells
@@ -108,7 +104,7 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
           // console.log(mainCoordinate, childCoordinate);
 
           if (distance > 5) {
-            break;
+            continue;
           }
 
           console.log(

@@ -17,15 +17,6 @@ export const printDevicesOverview = (devicesOnPorts: PortInfo[]) => {
   console.log(table.toString());
 };
 
-// export const writeDeviceInfoYaml = (devicesOnPorts: PortInfo[], robotName: string) => {
-//   const yamlAsString = yaml.dump({ devices: devicesOnPorts, name: robotName });
-
-//   fs.writeFileSync(
-//     configuration.directories.robotConfiguration + "/" + robotName + ".yaml",
-//     yamlAsString
-//   );
-// };
-
 export const writeDeviceInfoXML = (devicesOnPorts: PortInfo[], robotName: string) => {
   const declaration = {
     _declaration: {
@@ -84,4 +75,4 @@ export const writeDeviceInfoXML = (devicesOnPorts: PortInfo[], robotName: string
 };
 
 export const getSensorConfig = (index: number) =>
-  configuration.sensors[index % configuration.sensors.length];
+  configuration.sensorsOnPorts[index % configuration.sensorsOnPorts.length];

@@ -1,5 +1,4 @@
 import { webots } from ".";
-import { configuration } from "../configuration";
 import { Globals } from "../global";
 import { BuildElementFunction } from "../lego/types";
 import { transformation } from "../transformation";
@@ -76,25 +75,24 @@ const compassSensor: BuildElementFunction = ({ coordinate, direction, auxilierDi
 
 const touchSensor: BuildElementFunction = ({
   coordinate,
-  rotation,
   distance,
   direction,
   auxilierDirections
 }) => {
-  if (!rotation || !distance || !direction || !auxilierDirections) {
+  if (!distance || !direction || !auxilierDirections) {
     return { device: "", faceSet: "" };
   }
 
   const transformedCoordinate = transformation.point.toReal(coordinate);
 
-  const rotation2 = transformation.matrix.rotationFromCoordinates(
+  const rotation = transformation.matrix.rotationFromCoordinates(
     transformedCoordinate,
     direction,
     auxilierDirections[1],
     auxilierDirections[0]
   );
 
-  let rotationAngleAxis = rotationMatrixToAngleAxis(rotation2);
+  let rotationAngleAxis = rotationMatrixToAngleAxis(rotation);
 
   const device = webots.devices.sensors.touch(
     transformedCoordinate,
@@ -106,7 +104,7 @@ const touchSensor: BuildElementFunction = ({
   return {
     device,
     faceSet: deviceHintSphere(
-      transformation.point.multiply(transformedCoordinate, 1.01),
+      transformation.point.multiply(transformedCoordinate, 1.1),
       getSensorConfig(Globals.sensors).color
     ),
     portInfo: {
@@ -116,8 +114,58 @@ const touchSensor: BuildElementFunction = ({
   };
 };
 
+const lightSensor: BuildElementFunction = ({ coordinate, direction, auxilierDirections }) => {
+  if (!direction || !auxilierDirections) {
+    return { device: "", faceSet: "" };
+  }
+
+  const transformedNewPoint = transformation.point.toReal(coordinate);
+
+  const rotation = transformation.matrix.rotationFromCoordinates(
+    transformedNewPoint,
+    direction,
+    auxilierDirections[1],
+    auxilierDirections[0]
+  );
+
+  let rotationAngleAxis = rotationMatrixToAngleAxis(rotation);
+
+  const device = webots.devices.sensors.light(
+    transformedNewPoint,
+    rotationAngleAxis,
+    getSensorConfig(Globals.sensors).name
+  );
+
+  const realDirection = transformation.point.subtract(
+    transformedNewPoint,
+    transformation.point.toReal(direction)
+  );
+
+  console.log(realDirection);
+
+  const deviceHintSpherePosition = transformation.point.add(
+    transformedNewPoint,
+    transformation.point.multiply(realDirection, 0.4)
+  );
+
+  const faceSet = deviceHintSphere(
+    deviceHintSpherePosition,
+    getSensorConfig(Globals.sensors).color
+  );
+
+  return {
+    device,
+    faceSet,
+    portInfo: {
+      type: "light",
+      ...getSensorConfig(Globals.sensors)
+    }
+  };
+};
+
 export const webotsDevices = {
   distance: distanceSensor,
   touch: touchSensor,
-  compass: compassSensor
+  compass: compassSensor,
+  light: lightSensor
 };
