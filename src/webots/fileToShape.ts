@@ -46,8 +46,6 @@ export const fileToShape = (
   // Die unterschiedlichen Sensoren erstellen und zum Set hinzufügen
   if (specialElements && specialElements.length > 0) {
     for (const elementIndex in specialElements) {
-      console.log("Special Element", elementIndex);
-
       const { name } = specialElements[elementIndex];
 
       if (!lego.elements.special.devices[name]) {
@@ -117,8 +115,6 @@ export const fileToShape = (
       );
     }
 
-    console.log("Adding Hinge Joint at", coordinate, anchor);
-
     // console.log(rotation, coordinate);
     const rotatedAxis = transformation.point.transform({ x: 1, y: 0, z: 0 }, coordinate, rotation);
     // console.log(rotatedAxis);
@@ -143,7 +139,6 @@ export const fileToShape = (
     const { coordinate, height, radius, direction, auxilierDirections } = wheel;
 
     if (!direction || !auxilierDirections) {
-      console.log("RETURNING ");
       continue;
     }
 

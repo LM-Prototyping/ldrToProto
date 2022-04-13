@@ -26,7 +26,7 @@ export const getFileElements = (files: string[]) => {
   // zu einem Webots objekt gemacht werden muss
   const processedFilesOrder = [] as string[];
 
-  console.time();
+  // console.time();
 
   while (true) {
     const fileToProcess = getNextFileFromDependencyGraph(graphWithElements);
@@ -37,7 +37,7 @@ export const getFileElements = (files: string[]) => {
 
     const { name, file, sensors, connections, wheels } = fileToProcess;
 
-    console.log("File to process", name);
+    // console.log("File to process", name);
 
     const modelLines = [] as string[];
 
@@ -119,14 +119,14 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
       if (specialParts[fileName]) {
         const { name: specialElementName, type, internalName } = specialParts[fileName];
 
-        console.log(
-          "Found special element: ",
-          specialElementName,
-          "of type: ",
-          type,
-          "in submodel",
-          name
-        );
+        // console.log(
+        //   "Found special element: ",
+        //   specialElementName,
+        //   "of type: ",
+        //   type,
+        //   "in submodel",
+        //   name
+        // );
         const { basePosition, direction } = lego.elements.special.devices[internalName];
 
         if (internalName === specialParts[53793].internalName) {
@@ -182,18 +182,6 @@ const buildDependencyGraphWithSpecialElements = (dependencyGraph: DependencyNode
                 transformation.point.subtract(connectors[2], connectors[0]),
                 0.5
               )
-            )
-          );
-
-          console.log(
-            rotationMatrix,
-            transformation.matrix.transform(
-              matrix([
-                [1, 0, 0],
-                [0, 0, -1],
-                [0, 1, 0]
-              ]),
-              rotationMatrix
             )
           );
 

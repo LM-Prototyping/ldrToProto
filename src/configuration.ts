@@ -70,7 +70,7 @@ export const configuration = {
       colors: "/LDConfig.ldr"
     },
     webots: "../webotsWorkspace",
-    robotConfiguration: "../ros2Workspace/src/webots_ros2/resources"
+    robotConfiguration: "../ros2Workspace/src/lm_ros2_utils/resource"
   },
   plugins: {
     motor: "webots_ros2.motor_plugin.MotorPlugin",

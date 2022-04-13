@@ -82,15 +82,11 @@ const rotate = (from: Point, to: Point): Rotation => {
   const fromPointArray = toArray(normalize(toArray(from)));
   const toPointArray = toArray(normalize(toArray(to)));
 
-  // console.log(fromPointArray, toPointArray, cross(fromPointArray, toPointArray) as number[]);
-
   const { x, y, z } = fromArray(cross(fromPointArray, toPointArray) as number[]);
 
   const cosA = dot(fromPointArray, toPointArray);
 
   const k = 1.0 / (1.0 + cosA);
-
-  // console.log(cosA, k);
 
   if (cosA === -1) {
     return { x: 0, y: 1, z: 0, angle: pi };
@@ -102,14 +98,9 @@ const rotate = (from: Point, to: Point): Rotation => {
     [x * z * k - y, y * z * k + x, z * z * k + cosA]
   ]);
 
-  console.log(fromPointArray, toPointArray, rotationMatrix);
-
   const A = rotationMatrix.toArray() as number[][];
 
-  // console.log(rotationMatrix);
-
   const angle = acos((A[0][0] + A[1][1] + A[2][2] - 1) / 2);
-  // console.log(angle);
 
   const p = { x: 0, y: 0, z: 0 };
 

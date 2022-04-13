@@ -107,15 +107,15 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
             continue;
           }
 
-          console.log(
-            "Detected HingeJoint:",
-            name,
-            "->",
-            fileName,
-            mainCoordinate,
-            childCoordinate,
-            transformation.point.transform(childCoordinate, mainCoordinate, transformationMatrix)
-          );
+          // console.log(
+          //   "Detected HingeJoint:",
+          //   name,
+          //   "->",
+          //   fileName,
+          //   mainCoordinate,
+          //   childCoordinate,
+          //   transformation.point.transform(childCoordinate, mainCoordinate, transformationMatrix)
+          // );
 
           // Wenn die Distanz klein genug ist wird das Element als HingeJoint von dem Parent
           // gespeichert

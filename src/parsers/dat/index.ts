@@ -19,7 +19,7 @@ export const parseDatFile = (lineData: LineType1Data): string[] | undefined | nu
   const { fileName } = lineData;
 
   if (fileName.match(configuration.brickPi.fileName) && configuration.brickPi.required) {
-    console.log("Found BrickPi");
+    // console.log("Found BrickPi");
     Globals.brickPiExisting = true;
   }
 
