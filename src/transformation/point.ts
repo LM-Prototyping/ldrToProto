@@ -3,15 +3,11 @@ import math, {
   add as addVectors,
   multiply as multiplyMatrix,
   round,
-  sin,
   acos,
   sqrt,
-  MathJsChain,
   pi,
   cross,
-  dot,
-  cos,
-  zeros
+  dot
 } from "mathjs";
 import { transformation } from ".";
 import { Point } from "../parsers/types";
@@ -51,6 +47,8 @@ const transform = (point: Point, coordinateOffset: Point, transformationMatrix: 
     round(addVectors(multiplyMatrix(transformationMatrix, vector), offsetMatrix) as math.Matrix, 9)
   );
 };
+
+const roundArray = (p: number[]) => p.map((n) => n.toFixed(3));
 
 const distance = (a: Point, b: Point) => length([b.x - a.x, b.y - a.y, b.z - a.z]);
 
@@ -150,5 +148,6 @@ export const point = {
   normalizePoint,
   add,
   multiply,
-  normalize
+  normalize,
+  roundArray
 };

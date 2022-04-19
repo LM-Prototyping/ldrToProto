@@ -4,7 +4,9 @@ import { Rotation } from "../types";
 
 export const transform = (coordinate: Point, rotation: Rotation, children: string) => `
     Transform {
-        translation ${transformation.point.toArray(coordinate)}
+        translation ${transformation.point
+          .roundArray(transformation.point.toArray(coordinate))
+          .join(" ")}
         rotation ${Object.values(rotation).join(" ")}
         children [
             ${children}

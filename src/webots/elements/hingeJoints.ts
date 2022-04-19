@@ -14,7 +14,9 @@ export const hingeJoint = (
     HingeJoint {
       jointParameters HingeJointParameters {
         axis ${transformation.point.toArray(axis).join(" ")}
-        anchor ${transformation.point.toArray(connectionAnchor).join(" ")}
+        anchor ${transformation.point
+          .roundArray(transformation.point.toArray(connectionAnchor))
+          .join(" ")}
       }
       ${
         isMotor
