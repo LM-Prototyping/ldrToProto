@@ -10,9 +10,8 @@ export const createRobot = (order: string[], fileElements: FileElementDict, robo
     robot: `Robot {
       controller "<extern>"
       name "${robotName}"
-  ${element.replace(/Solid\s+{/, "")}
+  ${element.replace(/Solid\s+{(\s|\n)*name\s*"\w+"/, "")}
   `,
     devicesOnPorts
   };
 };
-

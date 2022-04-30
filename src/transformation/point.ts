@@ -48,7 +48,7 @@ const transform = (point: Point, coordinateOffset: Point, transformationMatrix: 
   );
 };
 
-const roundArray = (p: number[]) => p.map((n) => n.toFixed(3));
+const roundArray = (p: number[]) => p.map((n) => Number(n.toFixed(3)));
 
 const distance = (a: Point, b: Point) => length([b.x - a.x, b.y - a.y, b.z - a.z]);
 
@@ -75,6 +75,13 @@ const normalize = (point: number[]) => {
 };
 
 const normalizePoint = (point: Point) => normalize(toArray(point));
+
+const addVarianceToArray = (point: number[]) =>
+  point.map((n) => {
+    const r = Math.random() < 0.5;
+
+    return Number((n + (r ? 0.0001 : -0.0001)).toFixed(4));
+  });
 
 const rotate = (from: Point, to: Point): Rotation => {
   const fromPointArray = toArray(normalize(toArray(from)));
@@ -149,5 +156,6 @@ export const point = {
   add,
   multiply,
   normalize,
-  roundArray
+  roundArray,
+  addVarianceToArray
 };

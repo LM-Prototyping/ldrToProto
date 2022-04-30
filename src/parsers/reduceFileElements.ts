@@ -86,6 +86,12 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
         transformationMatrix
       );
 
+      const transformedHingeJoints = transformHingeJoints(
+        inlineHingeJoints,
+        coordinates,
+        transformationMatrix
+      );
+
       // Elements of subModell
       // Hier checken ob das Untermodell eine Connection mit dem Main modell teilt.
       // Wenn ja dann ist das Untermodell ein lose verbundenes Child des Main modells
@@ -121,11 +127,11 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
           // gespeichert
           isJointElement = true;
 
-          const transformedHingeJoints = transformHingeJoints(
-            inlineHingeJoints,
-            coordinates,
-            transformationMatrix
-          );
+          // const transformedHingeJoints = transformHingeJoints(
+          //   inlineHingeJoints,
+          //   coordinates,
+          //   transformationMatrix
+          // );
 
           hingeJoints.push({
             ...files[fileName],
@@ -163,6 +169,12 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
       newSpecialElements.push(...transformedSensors);
       newConnections.push(...transformedConnections);
       newWheels.push(...transformedWheels);
+
+      console.log(hingeJoints.length);
+
+      if (!isJointElement) {
+        hingeJoints.push(...transformedHingeJoints);
+      }
     }
 
     model.modelLines = newLines;

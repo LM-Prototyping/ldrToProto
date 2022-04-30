@@ -61,7 +61,17 @@ export const writeDeviceInfoXML = (devicesOnPorts: PortInfo[], robotName: string
         name: robotName
       },
       webots: {
-        plugin: devices
+        plugin: [
+          ...devices,
+          {
+            _attributes: {
+              type: configuration.plugins.clock
+            },
+            robotName: {
+              _text: robotName
+            }
+          }
+        ]
       }
     }
   };

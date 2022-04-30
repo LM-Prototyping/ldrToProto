@@ -10,13 +10,13 @@ const buildDistanceSensor = (t: Point, rotation: Rotation, name: string) => {
 
   return `
     DistanceSensor {
-        translation ${transformation.point.toString(t)}
-        rotation ${transformation.point.toString(rotation as Point)} ${rotation.angle}
-        name "${name}"
-        lookupTable [${lookupTable.join(" ")}]
-        type "${type}"
-        numberOfRays ${numberOfRays}
-        aperture ${aperture}
+      translation ${transformation.point.toString(t)}
+      rotation ${transformation.point.toString(rotation as Point)} ${rotation.angle}
+      name "${name}"
+      lookupTable [${lookupTable.join(" ")}]
+      type "${type}"
+      numberOfRays ${numberOfRays}
+      aperture ${aperture}
     }
 `;
 };

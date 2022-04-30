@@ -19,7 +19,8 @@ export const fileToShape = (
   file: string[],
   specialElements: Sensor[],
   hingeJoints: HingeJoint[] = [],
-  wheels: Wheel[]
+  wheels: Wheel[],
+  isMotor: boolean = false
 ) => {
   const faceSetPointsObject = getFaceSetPointsFromFile(file);
 
@@ -67,6 +68,7 @@ export const fileToShape = (
 
       devices.push(device);
       faceSets.push(faceSet);
+
       if (portInfo) {
         devicesOnPorts.push(portInfo);
       }
@@ -78,12 +80,13 @@ export const fileToShape = (
   // ####### HINGE JOINTS ########
   const hingeJointsAsString = [] as string[];
   for (const hinge of hingeJoints) {
-    const { modelLines, sensors, hingeJoints, element, wheels, isMotor } = hinge;
+    const { modelLines, sensors, hingeJoints, element, wheels, isMotor: isHingeJointMotor } = hinge;
     const { element: endPoint, devicesOnPorts: inlinePortInfo } = fileToShape(
       modelLines,
       sensors,
       hingeJoints,
-      wheels
+      wheels,
+      isHingeJointMotor || isMotor
     );
 
     if (inlinePortInfo) {
@@ -100,7 +103,7 @@ export const fileToShape = (
 
     let motorName: boolean | string = false;
 
-    if (isMotor && Globals.motors < configuration.maxMotors) {
+    if (isHingeJointMotor && Globals.motors < configuration.maxMotors) {
       motorName = configuration.motorsOnPorts[Globals.motors].name;
 
       faceSets.push(deviceHintSphere(anchor, configuration.motorsOnPorts[Globals.motors].color));
@@ -134,6 +137,7 @@ export const fileToShape = (
       "Objekt hat mehr als ein Wheel. Wenn in einem Modell mehrere Wheels sind kann das BoundingObject nicht korrekt erstellt werden."
     );
   }
+
   const wheelsAsString = [] as string[];
   for (const wheel of wheels) {
     const { coordinate, height, radius, direction, auxilierDirections } = wheel;
@@ -233,7 +237,8 @@ export const fileToShape = (
     null,
     null,
     [faceSets.join("\n"), devices.join("\n"), hingeJointsAsString.join("\n")],
-    wheelsAsString.join("\n")
+    wheelsAsString.join("\n"),
+    { isWheel: wheels.length > 0, isMotor }
   );
 
   return { element: solid, devicesOnPorts };

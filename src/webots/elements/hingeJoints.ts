@@ -15,7 +15,9 @@ export const hingeJoint = (
       jointParameters HingeJointParameters {
         axis ${transformation.point.toArray(axis).join(" ")}
         anchor ${transformation.point
-          .roundArray(transformation.point.toArray(connectionAnchor))
+          .addVarianceToArray(
+            transformation.point.roundArray(transformation.point.toArray(connectionAnchor))
+          )
           .join(" ")}
       }
       ${

@@ -75,8 +75,14 @@ export const configuration = {
   plugins: {
     motor: "webots_ros2.motor_plugin.MotorPlugin",
     distance: "webots_ros2.distance_plugin.DistancePlugin",
-    touch: "webots_ros2.distance_plugin.TouchPlugin",
+    touch: "webots_ros2.touch_plugin.TouchPlugin",
     compass: "webots_ros2.compass_plugin.CompassPlugin",
-    light: "webots_ros2.light_plugin.LightPlugin"
+    light: "webots_ros2.light_plugin.LightPlugin",
+    clock: "webots_ros2.clock_plugin.ClockPlugin"
+  },
+  contactMaterial: {
+    defaultMaterial: "default",
+    defaultWheel: "wheel",
+    wheelWithoutMotor: "no_friction_wheel"
   }
 };
