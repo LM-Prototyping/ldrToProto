@@ -92,6 +92,8 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
         transformationMatrix
       );
 
+      console.log(transformedHingeJoints);
+
       // Elements of subModell
       // Hier checken ob das Untermodell eine Connection mit dem Main modell teilt.
       // Wenn ja dann ist das Untermodell ein lose verbundenes Child des Main modells
@@ -184,6 +186,8 @@ export const reduceFileElements = (order: string[], files: FileElementDict) => {
 
     files[name] = model;
   }
+
+  console.log(files[order[order.length - 1]]);
 
   // console.log(files);
 
